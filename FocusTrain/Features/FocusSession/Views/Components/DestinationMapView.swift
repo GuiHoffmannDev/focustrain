@@ -265,7 +265,8 @@ final class StationAnnotationView: MKAnnotationView {
 
     private func startPulse(color: UIColor) {
         pulse.borderColor = color.cgColor
-        guard pulse.animation(forKey: "pulse") == nil else { return }
+        // Restart so the running cycle picks up the new borderColor (white → brass on solid→selected).
+        pulse.removeAnimation(forKey: "pulse")
         let scale = CABasicAnimation(keyPath: "transform.scale")
         scale.fromValue = 1.0
         scale.toValue = 1.3
