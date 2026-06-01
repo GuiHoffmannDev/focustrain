@@ -23,6 +23,20 @@ final class DurationPickerModel {
 
     var selectedDestination: Destination { destinations[selectedIndex] }
 
+    // MARK: - Estado derivado (sinks read-only; selectedIndex é a única fonte)
+
+    /// Estações "em alcance" (sólidas): índices 0...selectedIndex inclusive.
+    var reachableCount: Int { selectedIndex + 1 }
+
+    /// Raio cosmético do anel no mapa, em metros — estilizado a partir do
+    /// nominalKm da estação selecionada (não é distância geográfica real).
+    var ringRadiusMeters: CLLocationDistance {
+        Double(selectedDestination.nominalKm) * 1_000 * Self.ringScale
+    }
+
+    /// Multiplicador visual do anel (tunável).
+    static let ringScale: Double = 1.0
+
     init(destinations: [Destination] = Destination.ladder,
          origin: Station? = nil,
          haptics: DetentHapticsService = DetentHaptics.make()) {
@@ -98,6 +112,8 @@ final class DurationPickerModel {
     // clamp
     m.select(999, from: .ruler); let clampHi = m.selectedIndex == m.destinations.count - 1
     m.select(-5, from: .ruler);  let clampLo = m.selectedIndex == 0
+    let reach0 = m.reachableCount == 1            // index 0 → 1 estação em alcance
+    let ring0  = m.ringRadiusMeters               // raio na estação mais curta
     // dedup: selecting the same index twice keeps it put
     m.select(3, from: .map); let after = m.selectedIndex; m.select(3, from: .ruler)
     let dedup = m.selectedIndex == after && after == 3
@@ -105,7 +121,9 @@ final class DurationPickerModel {
     m.select(m.destinations.firstIndex { $0.minutes == 90 }!, from: .ruler)
     let t = m.makeTicket()
     let ticketOK = t.durationMinutes == 90 && t.toCode == "TYO" && t.fromCode == m.origin.code
-    let pass = clampHi && clampLo && dedup && ticketOK
+    let reachAll = m.reachableCount == m.destinations.count
+    let ringGrew = m.ringRadiusMeters > ring0 && m.ringRadiusMeters > 0
+    let pass = clampHi && clampLo && dedup && ticketOK && reach0 && reachAll && ringGrew
     return VStack(alignment: .leading, spacing: 6) {
         Text(pass ? "PASS ✓" : "FAIL ✗").font(.title.bold()).foregroundStyle(pass ? .green : .red)
         Text("clampHi=\(clampHi) clampLo=\(clampLo) dedup=\(dedup) ticket=\(ticketOK)").font(.caption.monospaced())
