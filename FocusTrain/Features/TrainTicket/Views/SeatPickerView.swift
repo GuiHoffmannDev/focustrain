@@ -3,7 +3,7 @@ import SwiftData
 import UIKit
 
 /// Last step before the ride: pick a seat in the wagon and an intention chip.
-/// Mirrors the visual cadence of `ComposeJourneyView` (black bg + brandRail
+/// Mirrors the visual cadence of the compose flow (black bg + brandRail
 /// backdrop glow + spring reveal + back chevron toolbar) so the embarkation
 /// flow feels continuous.
 struct SeatPickerView: View {

@@ -4,8 +4,8 @@ import CoreLocation
 
 /// Single source of truth for the destination/duration picker. `selectedIndex`
 /// into `destinations` is the only stored selection; everything visual derives
-/// from it. Seeds scenario/mapStyle from onboarding defaults like the old
-/// ComposeJourneyViewModel, and builds the active-session Ticket.
+/// from it. Seeds scenario/mapStyle from onboarding defaults and builds the
+/// active-session Ticket.
 @MainActor
 @Observable
 final class DurationPickerModel {
