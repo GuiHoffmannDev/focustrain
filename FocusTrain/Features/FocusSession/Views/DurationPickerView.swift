@@ -40,6 +40,7 @@ struct DurationPickerView: View {
                     .opacity(appeared ? 1 : 0).offset(y: appeared ? 0 : 12)
                 Spacer()
             }
+            .allowsHitTesting(false)
 
             // Controles fixos embaixo.
             VStack {
