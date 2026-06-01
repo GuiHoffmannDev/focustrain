@@ -78,7 +78,7 @@ struct RootView: View {
     private func destination(for route: Route) -> some View {
         switch route {
         case .compose:
-            ComposeJourneyView(
+            DurationPickerView(
                 onDepart: { ticket in
                     path.append(Route.seatPicker(ticket))
                 },
