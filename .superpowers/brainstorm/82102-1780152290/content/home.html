@@ -1,0 +1,105 @@
+<h2>Section 2 · Home &amp; Compose</h2>
+<p class="subtitle">Aplicando a base sem reestruturar. O herói de streak (88pt) que você já tem fica intacto. O serif do option A entra como uma saudação calorosa no topo, e os "lightweight stats" que você aprovou são tecidos numa linha discreta — não um dashboard. À esquerda hoje, à direita a proposta.</p>
+
+<style>
+  .hm-split{ display:grid; grid-template-columns:1fr 1fr; gap:20px; margin:8px 0 22px; }
+  @media (max-width:760px){ .hm-split{ grid-template-columns:1fr; } }
+  .hmphone{ position:relative; border-radius:30px; overflow:hidden; min-height:560px; border:1px solid rgba(255,255,255,.09);
+            background:radial-gradient(120% 60% at 50% 0%, rgba(255,255,255,.06), transparent 55%), #000; padding:30px 22px 22px; }
+  .hmcap{ text-align:center; font-size:10px; letter-spacing:.18em; text-transform:uppercase; color:#8a8f98; margin-bottom:14px; }
+  .mono{ font-family:'SF Mono',ui-monospace,Menlo,monospace; }
+  .serif{ font-family:'New York','Iowan Old Style','Charter',Georgia,serif; }
+  .sans{ font-family:-apple-system,'SF Pro Text',Helvetica,Arial,sans-serif; }
+
+  .wordmark{ display:flex; align-items:center; gap:7px; color:#9aa0a8; font-size:13px; font-weight:800; letter-spacing:.14em; }
+  .wordmark .tram{ color:#fff; }
+  .greet{ font-size:30px; color:#f4f1ea; margin:14px 0 0; line-height:1.05; }
+  .slabel{ font-size:12px; letter-spacing:.2em; text-transform:uppercase; color:#6b7280; text-align:center; }
+  .streak{ display:flex; align-items:baseline; justify-content:center; gap:12px; margin:8px 0 4px; }
+  .flame{ font-size:30px; }
+  .snum{ font-size:84px; font-weight:900; color:#fff; line-height:.9; }
+  .sdays{ text-align:center; color:#9aa0a8; font-size:15px; }
+
+  .stats{ display:flex; align-items:stretch; margin:18px 0 6px; padding:14px 4px; border-radius:18px;
+          background:rgba(255,255,255,.05); border:1px solid rgba(255,255,255,.08); }
+  .stat{ flex:1; text-align:center; }
+  .stat + .stat{ border-left:1px solid rgba(255,255,255,.10); }
+  .stat .v{ font-size:20px; color:#f4f1ea; }
+  .stat .l{ font-size:9.5px; letter-spacing:.14em; text-transform:uppercase; color:#6b7280; margin-top:4px; }
+
+  .reclabel{ font-size:11px; letter-spacing:.16em; text-transform:uppercase; color:#6b7280; margin:18px 0 10px; }
+  .recrow{ display:flex; align-items:center; gap:12px; padding:11px 13px; border-radius:15px; margin-bottom:9px;
+           background:rgba(15,23,41,.5); }
+  .recrow.mat{ background:rgba(255,255,255,.055); border:1px solid rgba(255,255,255,.07); }
+  .recicon{ width:36px; height:36px; border-radius:50%; background:#0f1729; display:flex; align-items:center; justify-content:center; color:#fff; font-size:15px; }
+  .recttl{ font-size:15px; font-weight:700; color:#fff; }
+  .recsub{ font-size:11.5px; color:#6b7280; }
+
+  .cta{ height:50px; border-radius:16px; display:flex; align-items:center; justify-content:center; gap:8px; font-size:15px; font-weight:700; margin-top:10px; }
+  .cta.primary{ background:#fff; color:#10131a; }
+  .cta.ghost{ background:transparent; border:1px solid rgba(255,255,255,.18); color:#e6e8ec; font-weight:600; }
+
+  .legend{ display:grid; grid-template-columns:repeat(2,1fr); gap:10px 26px; margin-top:6px; }
+  @media (max-width:760px){ .legend{ grid-template-columns:1fr; } }
+  .legend .li{ display:flex; gap:10px; font-size:13px; line-height:1.5; }
+  .legend .dot{ flex:0 0 auto; width:9px; height:9px; border-radius:50%; background:#E0A458; margin-top:6px; }
+  .legend b{ color:#f0e7d8; font-weight:600; }
+</style>
+
+<div class="hm-split">
+  <!-- NOW -->
+  <div class="hmphone">
+    <div class="hmcap">Now</div>
+    <div class="wordmark"><span class="tram">🚊</span> RAILFOCUS</div>
+    <div style="height:34px;"></div>
+    <div class="slabel">Sequência</div>
+    <div class="streak"><span class="flame">🔥</span><span class="snum">7</span></div>
+    <div class="sdays sans">dias seguidos</div>
+    <div class="reclabel">Recentes</div>
+    <div class="recrow"><div class="recicon">⛰️</div><div><div class="recttl">TYO → KYO</div><div class="recsub sans">25 min · 28 mai</div></div></div>
+    <div class="recrow"><div class="recicon">🌊</div><div><div class="recttl">LIS → POR</div><div class="recsub sans">50 min · 27 mai</div></div></div>
+    <div class="cta primary sans">Iniciar jornada →</div>
+    <div class="cta ghost sans">Histórico</div>
+  </div>
+
+  <!-- PROPOSED -->
+  <div class="hmphone">
+    <div class="hmcap">Cinematic Calm</div>
+    <div class="wordmark"><span class="tram">🚊</span> RAILFOCUS</div>
+    <div class="greet serif">Boa noite</div>
+    <div style="height:18px;"></div>
+    <div class="slabel">Sequência</div>
+    <div class="streak"><span class="flame" style="filter:drop-shadow(0 0 12px rgba(224,164,88,.7));">🔥</span><span class="snum">7</span></div>
+    <div class="sdays sans">dias seguidos</div>
+
+    <div class="stats">
+      <div class="stat"><div class="v mono">23</div><div class="l">Jornadas</div></div>
+      <div class="stat"><div class="v mono">14h</div><div class="l">Tempo de foco</div></div>
+      <div class="stat"><div class="v mono">4.240</div><div class="l">km percorridos</div></div>
+    </div>
+
+    <div class="reclabel">Recentes</div>
+    <div class="recrow mat"><div class="recicon" style="color:#E0A458;">⛰️</div><div><div class="recttl">TYO → KYO</div><div class="recsub sans">25 min · 28 mai</div></div></div>
+    <div class="recrow mat"><div class="recicon" style="color:#E0A458;">🌊</div><div><div class="recttl">LIS → POR</div><div class="recsub sans">50 min · 27 mai</div></div></div>
+    <div class="cta primary sans">Iniciar jornada →</div>
+    <div class="cta ghost sans">Histórico</div>
+  </div>
+</div>
+
+<div class="legend">
+  <div class="li"><span class="dot"></span><div><b>Saudação serif.</b> Uma linha calorosa em New York no topo ("Boa noite") — o momento hero serif da Home (option A). Brand wordmark fica.</div></div>
+  <div class="li"><span class="dot"></span><div><b>Streak intacto.</b> O número 88pt em SF que você gosta permanece; só o flame ganha o glow brass refinado.</div></div>
+  <div class="li"><span class="dot"></span><div><b>Stats tecidos.</b> Uma linha discreta: jornadas, tempo de foco e <i>distância percorrida</i> (delícia on-theme de trem). Números <code>.numericText()</code>, não um dashboard.</div></div>
+  <div class="li"><span class="dot"></span><div><b>Profundidade sutil.</b> Linhas recentes ganham material leve + glow; entradas usam a mola "settle" mais lenta.</div></div>
+</div>
+
+<hr style="border:none;border-top:1px solid rgba(255,255,255,.1);margin:26px 0;">
+
+<h3 style="margin-bottom:6px;">Compose — toque leve, sem reestruturar</h3>
+<p class="subtitle" style="margin-top:0;">O ticket brass continua o herói da tela. Só dois movimentos: <b>(1)</b> o título "Componha sua jornada" vira serif New York (momento hero), e <b>(2)</b> chips de duração/cenário e o ticket recebem o glow refinado + a mola settle. Estrutura, reroll e depart bar ficam exatamente como estão.</p>
+<div style="display:flex;gap:16px;align-items:center;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-radius:14px;padding:16px 18px;">
+  <div style="font-size:11px;letter-spacing:.16em;text-transform:uppercase;color:#6b7280;">Hoje (SF)</div>
+  <div class="sans" style="font-size:24px;font-weight:700;color:#fff;">Componha sua jornada</div>
+  <div style="margin-left:auto;font-size:11px;letter-spacing:.16em;text-transform:uppercase;color:#E0A458;">Proposto (serif)</div>
+  <div class="serif" style="font-size:26px;color:#f4f1ea;">Componha sua jornada</div>
+</div>

@@ -1,0 +1,115 @@
+<h2>What should "premium" feel like for FocusTrain?</h2>
+<p class="subtitle">Four directions to push the existing look (black canvas · white accent · brass ticket · glowing motion). Pick the one that resonates — or tell me it's a blend. You can click to select.</p>
+
+<style>
+  .dir-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; margin-top: 8px; }
+  @media (max-width: 720px) { .dir-grid { grid-template-columns: 1fr; } }
+  .dir { border-radius: 16px; overflow: hidden; cursor: pointer; border: 2px solid rgba(255,255,255,0.10);
+         transition: transform .18s ease, border-color .18s ease; background:#0b0b0f; }
+  .dir:hover { transform: translateY(-3px); border-color: rgba(255,255,255,0.35); }
+  .dir.selected { border-color:#E0A458; box-shadow:0 0 0 3px rgba(224,164,88,.25); }
+  .vignette { height: 188px; padding: 20px; position: relative; overflow: hidden; }
+  .dir-body { padding: 14px 18px 18px; }
+  .dir-body h3 { margin: 0 0 4px; font-size: 18px; }
+  .dir-body .tag { font-size: 11px; letter-spacing:.10em; text-transform:uppercase; opacity:.55; }
+  .dir-body p { font-size: 13px; line-height: 1.5; opacity:.8; margin: 8px 0 0; }
+  .refs { font-size: 11px; opacity:.5; margin-top:10px; }
+
+  /* A — Cinematic Calm */
+  .vA { background: radial-gradient(120% 90% at 50% 0%, rgba(224,164,88,.22), transparent 60%), #05050a; }
+  .vA .serif { font-family: Georgia, 'Times New Roman', serif; color:#f4f1ea; font-size: 30px; letter-spacing:.01em; line-height:1.1; }
+  .vA .sub { color:#9a958c; font-size:12px; margin-top:10px; letter-spacing:.18em; text-transform:uppercase; }
+  .vA .glow { position:absolute; right:18px; bottom:16px; width:64px; height:64px; border-radius:50%;
+              background: radial-gradient(circle, rgba(224,164,88,.9), rgba(224,164,88,0) 70%); filter: blur(2px); }
+
+  /* B — Swiss Precision */
+  .vB { background:#08090b; }
+  .vB .rule { height:1px; background:rgba(255,255,255,.25); margin:10px 0; }
+  .vB .mono { font-family: 'SF Mono', ui-monospace, Menlo, monospace; color:#e7e7e7; font-size:11px; letter-spacing:.04em; display:flex; justify-content:space-between; }
+  .vB .big { font-family: 'SF Mono', ui-monospace, Menlo, monospace; color:#fff; font-size:40px; font-weight:600; letter-spacing:-.02em; }
+  .vB .lbl { font-family:'SF Mono',ui-monospace,monospace; font-size:9px; letter-spacing:.18em; color:#6b7280; text-transform:uppercase; }
+
+  /* C — Tactile Playful */
+  .vC { background: linear-gradient(160deg, #14161f, #0c0d12); }
+  .vC .blob { position:absolute; border-radius:42% 58% 60% 40%; filter: blur(.5px); }
+  .vC .b1 { width:120px; height:120px; background:#C5D5C0; top:-20px; left:-10px; opacity:.85; }
+  .vC .b2 { width:90px; height:90px; background:#C5C5E0; bottom:-18px; right:6px; opacity:.85; border-radius:58% 42% 40% 60%; }
+  .vC .pill { position:relative; z-index:2; display:inline-block; background:#fff; color:#15161d; font-weight:800;
+              padding:10px 16px; border-radius:30px; font-size:15px; box-shadow:0 8px 24px rgba(0,0,0,.4); }
+  .vC .pill2 { position:relative; z-index:2; display:inline-block; margin-top:90px; background:#E0A458; color:#1a1a2e; font-weight:800; padding:8px 14px; border-radius:24px; font-size:13px; }
+
+  /* D — Analog Rail */
+  .vD { background: repeating-linear-gradient(45deg, #0a0a0e, #0a0a0e 10px, #0c0c11 10px, #0c0c11 20px); }
+  .vD .pass { background:#e9e2d0; color:#2a2620; border-radius:8px; padding:12px 14px; position:relative;
+              font-family:'SF Mono',ui-monospace,monospace; box-shadow:0 10px 26px rgba(0,0,0,.5); }
+  .vD .pass .row { display:flex; justify-content:space-between; font-size:10px; letter-spacing:.12em; }
+  .vD .pass .code { font-size:26px; font-weight:800; letter-spacing:.04em; margin:6px 0 2px; }
+  .vD .perf { border-top:2px dashed rgba(42,38,32,.4); margin:8px 0; }
+  .vD .stamp { position:absolute; right:10px; top:8px; transform:rotate(-14deg); color:#b3402f; border:2px solid #b3402f;
+               border-radius:4px; font-size:9px; font-weight:800; letter-spacing:.12em; padding:2px 5px; opacity:.8; }
+</style>
+
+<div class="dir-grid">
+  <div class="dir" data-choice="a" onclick="toggleSelect(this)">
+    <div class="vignette vA">
+      <div class="serif">Tokyo → Kyoto</div>
+      <div class="sub">Now departing · Car 1</div>
+      <div class="glow"></div>
+    </div>
+    <div class="dir-body">
+      <span class="tag">Direction A</span>
+      <h3>Cinematic Calm</h3>
+      <p>The journey as a meditative, first-class experience. Deep blacks, soft brass glow, slow graceful motion, refined serif for hero moments, lots of breathing room.</p>
+      <div class="refs">Feels like: Calm · luxury airline lounges · slow cinema</div>
+    </div>
+  </div>
+
+  <div class="dir" data-choice="b" onclick="toggleSelect(this)">
+    <div class="vignette vB">
+      <div class="lbl">Remaining</div>
+      <div class="big">24:08</div>
+      <div class="rule"></div>
+      <div class="mono"><span>TYO</span><span>—————▶</span><span>KYO</span></div>
+      <div class="mono" style="margin-top:8px;"><span>DIST 364KM</span><span>CAR 01</span></div>
+    </div>
+    <div class="dir-body">
+      <span class="tag">Direction B</span>
+      <h3>Swiss Precision</h3>
+      <p>Restraint as luxury. Stark monochrome, tight grid, monospaced data, hairline rules, near-zero ornament. The typography does all the work.</p>
+      <div class="refs">Feels like: Linear · Things 3 · Teenage Engineering</div>
+    </div>
+  </div>
+
+  <div class="dir" data-choice="c" onclick="toggleSelect(this)">
+    <div class="vignette vC">
+      <div class="blob b1"></div>
+      <div class="blob b2"></div>
+      <div class="pill">You've arrived ✦</div>
+      <div class="pill2">+1 day streak 🔥</div>
+    </div>
+    <div class="dir-body">
+      <span class="tag">Direction C</span>
+      <h3>Tactile &amp; Playful</h3>
+      <p>Warmth and character. Bouncier springs, soft organic shapes, expressive scenario color, satisfying micro-rewards. Alive and rewarding to return to.</p>
+      <div class="refs">Feels like: Headspace · Duolingo · Arc</div>
+    </div>
+  </div>
+
+  <div class="dir" data-choice="d" onclick="toggleSelect(this)">
+    <div class="vignette vD">
+      <div class="pass">
+        <div class="stamp">ARRIVED</div>
+        <div class="row"><span>FOCUSTRAIN</span><span>FOREST</span></div>
+        <div class="code">TYO ▸ KYO</div>
+        <div class="perf"></div>
+        <div class="row"><span>DEP 09:14</span><span>50 MIN</span><span>FT-2048</span></div>
+      </div>
+    </div>
+    <div class="dir-body">
+      <span class="tag">Direction D</span>
+      <h3>Analog Rail</h3>
+      <p>Lean hard into the boarding-pass metaphor. Letterpress paper warmth, stamps, perforations, vintage rail typography. Tickets feel collectible.</p>
+      <div class="refs">Feels like: vintage boarding passes · Field Notes · rail heritage</div>
+    </div>
+  </div>
+</div>

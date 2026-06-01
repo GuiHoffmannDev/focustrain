@@ -1,0 +1,98 @@
+<h2>Foundation · Step 1 — Typography</h2>
+<p class="subtitle">Today every word is the system font (SF). Cinematic Calm gets most of its quiet luxury from a refined <b>serif on the hero moments</b>, with SF kept for UI, data and the ticket. iOS's built-in <b>New York</b> serif gives us this with zero bundling. Here's the same Arrival beat, before and after.</p>
+
+<style>
+  .ty-split { display:grid; grid-template-columns:1fr 1fr; gap:18px; margin:6px 0 26px; }
+  @media (max-width:720px){ .ty-split{ grid-template-columns:1fr; } }
+  .phone { background:#05050a; border-radius:22px; padding:30px 24px 26px; min-height:300px;
+           border:1px solid rgba(255,255,255,.08); position:relative; overflow:hidden;
+           display:flex; flex-direction:column; align-items:center; justify-content:center; gap:12px; }
+  .phone .glowbg { position:absolute; inset:0; background:radial-gradient(90% 60% at 50% 18%, rgba(224,164,88,.16), transparent 60%); }
+  .phone .cap { position:absolute; top:12px; left:0; right:0; text-align:center; font-size:10px; letter-spacing:.18em;
+                text-transform:uppercase; color:#6b7280; }
+  .seal { width:54px; height:54px; border-radius:50%; border:1.5px solid rgba(224,164,88,.5);
+          display:flex; align-items:center; justify-content:center; color:#E0A458; font-size:24px;
+          box-shadow:0 0 26px rgba(224,164,88,.45); position:relative; z-index:2; }
+  .hero-sf   { font-family:-apple-system,'SF Pro Display',Helvetica,Arial,sans-serif; font-weight:800; }
+  .hero-ny   { font-family:'New York','Iowan Old Style','Charter',Georgia,serif; font-weight:600; letter-spacing:.005em; }
+  .hero-line { font-size:36px; color:#f4f1ea; line-height:1.06; position:relative; z-index:2; text-align:center; }
+  .sub  { font-family:-apple-system,'SF Pro Text',Helvetica,Arial,sans-serif; font-size:13px; color:#9a958c;
+          text-align:center; position:relative; z-index:2; max-width:230px; line-height:1.5; }
+  .route{ font-family:-apple-system,'SF Pro Text',monospace; font-size:11px; letter-spacing:.14em; color:#6b7280;
+          text-transform:uppercase; position:relative; z-index:2; }
+  .badge{ font-size:10px; letter-spacing:.16em; text-transform:uppercase; padding:3px 9px; border-radius:20px;
+          position:absolute; bottom:14px; }
+  .badge.now{ background:rgba(255,255,255,.06); color:#6b7280; }
+  .badge.new{ background:rgba(224,164,88,.16); color:#E0A458; }
+
+  .opt-cards{ display:grid; grid-template-columns:1fr 1fr 1fr; gap:14px; }
+  @media (max-width:720px){ .opt-cards{ grid-template-columns:1fr; } }
+  .ocard{ border:2px solid rgba(255,255,255,.1); border-radius:14px; padding:16px; cursor:pointer; background:#0b0b0f;
+          transition:transform .16s ease,border-color .16s ease; }
+  .ocard:hover{ transform:translateY(-3px); border-color:rgba(255,255,255,.32); }
+  .ocard.selected{ border-color:#E0A458; box-shadow:0 0 0 3px rgba(224,164,88,.22); }
+  .ocard .ltr{ font-family:'New York',Georgia,serif; font-size:22px; color:#E0A458; }
+  .ocard h3{ margin:6px 0 6px; font-size:15px; }
+  .ocard p{ font-size:12.5px; line-height:1.5; opacity:.82; margin:0; }
+  .ocard .rec{ display:inline-block; margin-top:8px; font-size:10px; letter-spacing:.12em; text-transform:uppercase; color:#E0A458; }
+  .samp{ margin-top:10px; padding-top:10px; border-top:1px dashed rgba(255,255,255,.12); }
+  .samp .big{ font-size:24px; color:#f4f1ea; line-height:1; }
+  .samp .num{ font-size:24px; color:#f4f1ea; }
+</style>
+
+<div class="ty-split">
+  <div class="phone">
+    <span class="cap">Now · all SF</span>
+    <div class="glowbg"></div>
+    <div class="seal">✓</div>
+    <div class="hero-line hero-sf">Você chegou</div>
+    <div class="sub">Mais uma jornada concluída nos trilhos.</div>
+    <div class="route">Tóquio &nbsp;▸&nbsp; Quioto</div>
+    <span class="badge now">Current</span>
+  </div>
+  <div class="phone">
+    <span class="cap">Proposed · New York serif hero</span>
+    <div class="glowbg"></div>
+    <div class="seal">✓</div>
+    <div class="hero-line hero-ny">Você chegou</div>
+    <div class="sub">Mais uma jornada concluída nos trilhos.</div>
+    <div class="route">Tóquio &nbsp;▸&nbsp; Quioto</div>
+    <span class="badge new">Cinematic Calm</span>
+  </div>
+</div>
+
+<h3 style="margin-bottom:4px;">How far should the serif reach?</h3>
+<p class="subtitle" style="margin-top:0;">Pick one — click to select. (SF stays for buttons, labels, body and the monospaced ticket fields in every option.)</p>
+
+<div class="opt-cards">
+  <div class="ocard" data-choice="a" onclick="toggleSelect(this)">
+    <div class="ltr">A</div>
+    <h3>Serif on hero moments only</h3>
+    <p>Arrival title, the brand/streak hero, big celebratory lines. Countdown &amp; data stay SF/mono so numbers read crisp and precise.</p>
+    <span class="rec">★ Recommended</span>
+    <div class="samp">
+      <div class="big hero-ny">Você chegou</div>
+      <div class="num" style="font-family:-apple-system,monospace;margin-top:6px;">24:08</div>
+    </div>
+  </div>
+
+  <div class="ocard" data-choice="b" onclick="toggleSelect(this)">
+    <div class="ltr">B</div>
+    <h3>Serif broadly</h3>
+    <p>Hero + section titles + the big countdown all serif. Most editorial &amp; cinematic — but serif numerals can feel a touch less exact.</p>
+    <div class="samp">
+      <div class="big hero-ny">Você chegou</div>
+      <div class="num hero-ny" style="margin-top:6px;">24:08</div>
+    </div>
+  </div>
+
+  <div class="ocard" data-choice="c" onclick="toggleSelect(this)">
+    <div class="ltr">C</div>
+    <h3>Stay all-SF</h3>
+    <p>No new face — earn "premium" only from weight, spacing &amp; tracking. Safest, but leaves the biggest Cinematic-Calm lever unused.</p>
+    <div class="samp">
+      <div class="big hero-sf">Você chegou</div>
+      <div class="num" style="font-family:-apple-system,monospace;margin-top:6px;">24:08</div>
+    </div>
+  </div>
+</div>
