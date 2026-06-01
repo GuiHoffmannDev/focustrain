@@ -9,7 +9,7 @@ import CoreLocation
 @MainActor
 @Observable
 final class DurationPickerModel {
-    enum InteractionSource: Equatable { case none, ruler, radar, carousel }
+    enum InteractionSource: Equatable { case none, ruler, map }
 
     let destinations: [Destination]
     private(set) var origin: Station
@@ -99,7 +99,7 @@ final class DurationPickerModel {
     m.select(999, from: .ruler); let clampHi = m.selectedIndex == m.destinations.count - 1
     m.select(-5, from: .ruler);  let clampLo = m.selectedIndex == 0
     // dedup: selecting the same index twice keeps it put
-    m.select(3, from: .radar); let after = m.selectedIndex; m.select(3, from: .carousel)
+    m.select(3, from: .map); let after = m.selectedIndex; m.select(3, from: .ruler)
     let dedup = m.selectedIndex == after && after == 3
     // ticket reflects selection
     m.select(m.destinations.firstIndex { $0.minutes == 90 }!, from: .ruler)

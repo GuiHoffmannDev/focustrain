@@ -23,9 +23,6 @@ struct DurationPickerView: View {
                         .foregroundStyle(FT.Palette.white)
                         .opacity(appeared ? 1 : 0).offset(y: appeared ? 0 : 12)
 
-                    RadarDialView(model: model)
-                        .opacity(appeared ? 1 : 0).scaleEffect(appeared ? 1 : 0.96)
-
                     VStack(spacing: 10) {
                         HStack(alignment: .firstTextBaseline, spacing: 4) {
                             Text("\(model.selectedDestination.minutes)")
@@ -41,9 +38,6 @@ struct DurationPickerView: View {
                         TimeRulerView(model: model)
                     }
                     .opacity(appeared ? 1 : 0).offset(y: appeared ? 0 : 16)
-
-                    DestinationCarouselView(model: model)
-                        .opacity(appeared ? 1 : 0).offset(y: appeared ? 0 : 18)
 
                     VStack(alignment: .leading, spacing: 14) {
                         Text(NSLocalizedString("compose.scenario.title", comment: "").uppercased())
