@@ -58,6 +58,17 @@ final class SessionViewModel {
         return String(format: "%02d:%02d", total / 60, total % 60)
     }
 
+    /// Bottom-tile copy: "N min" for ≥1 minute, "<1 min" otherwise.
+    /// Always uses minutes — no MM:SS — because the tile is small.
+    var remainingMinutesText: String {
+        if remaining < 60 {
+            return NSLocalizedString("session.minutes.lt1", comment: "Shown when under one minute remains")
+        }
+        let minutes = Int((remaining / 60).rounded())
+        let unit = NSLocalizedString("session.minutes.unit", comment: "Short minutes unit")
+        return "\(minutes) \(unit)"
+    }
+
     /// Total great-circle distance of the route, in metres.
     var totalDistance: CLLocationDistance {
         let a = CLLocation(latitude: ticket.fromLat, longitude: ticket.fromLon)
