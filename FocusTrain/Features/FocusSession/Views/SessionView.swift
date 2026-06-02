@@ -58,6 +58,7 @@ struct SessionView: View {
                         Spacer()
                         SessionEndButton(onEnd: onEnd)
                             .opacity(appeared ? 1 : 0)
+                            .offset(y: appeared ? 0 : -16)
                     }
                 }
                 .padding(.top, 8)
@@ -95,6 +96,7 @@ struct SessionView: View {
                         ),
                         accessibilityValue: tunnel.isActive ? "on" : "off"
                     ) {
+                        UIImpactFeedbackGenerator(style: .light).impactOccurred()
                         withAnimation(.spring(response: 0.4, dampingFraction: 0.82)) {
                             tunnel.toggle()
                         }
