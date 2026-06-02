@@ -136,12 +136,12 @@ Existing keys preserved: `session.end`, `session.tunnel.on`, `session.tunnel.off
 
 ### Ticket model
 
-Add two SwiftData properties:
+`Ticket` is a `Codable` struct persisted as JSON in `UserDefaults` (see `SessionStore`). Add two properties:
 
-- `pausedAt: Date?` — when the current pause began. `nil` = not currently paused.
+- `pausedAt: Date?` — when the current pause began. `nil` = not currently paused. Optional so Swift's auto-synthesized decode reads missing-key as `nil` on existing stored tickets.
 - `accumulatedPause: TimeInterval` — sum of all completed pause intervals from prior pause/resume cycles. Default `0`.
 
-Both default to safe values, so existing tickets read back as never-paused without migration code. SwiftData handles the schema bump automatically.
+Because Swift's synthesized `init(from:)` does not honor property defaults for missing keys, `Ticket` gets a custom `init(from decoder:)` that decodes every existing key as today and defaults `accumulatedPause` to `0` when the key is absent. This keeps the runtime type non-optional while staying backwards-compatible with stored JSON.
 
 ### SessionViewModel changes
 
