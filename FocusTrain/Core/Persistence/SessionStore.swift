@@ -36,6 +36,24 @@ final class SessionStore {
         activeTicket = nil
     }
 
+    /// Updates only the scenario tag on the active ticket. Used by the
+    /// in-ride music selector so the choice survives backgrounding and
+    /// flows into the saved Journey at arrival.
+    func updateScenario(_ scenario: FocusScenario) {
+        guard var ticket = activeTicket, ticket.scenario != scenario.rawValue else { return }
+        ticket.scenario = scenario.rawValue
+        activeTicket = ticket
+    }
+
+    /// Updates only the map style on the active ticket. Used by the in-ride
+    /// map-style selector so the choice survives backgrounding and flows into
+    /// the saved Journey at arrival. Mirrors `updateScenario`.
+    func updateMapStyle(_ style: MapStyle) {
+        guard var ticket = activeTicket, ticket.mapStyle != style.rawValue else { return }
+        ticket.mapStyle = style.rawValue
+        activeTicket = ticket
+    }
+
     // MARK: - Persistence
 
     private func load() {
