@@ -1,9 +1,8 @@
 import SwiftUI
 
-/// The live ride: a full-screen geodesic map with a glowing train, an overlaid
-/// countdown, route endpoints, distance remaining, a "fit route" toggle, the
-/// Tunnel Mode toggle, and an end-ride control. All timing derives from the
-/// ticket's `departDate`, so it resumes correctly after backgrounding.
+/// The live ride: a full-screen geodesic map with a glowing train. Chrome
+/// floats on top — destination title at the top, side control pills hugging
+/// the edges, and tiny time/distance metric tiles in the bottom corners.
 struct SessionView: View {
     let ticket: Ticket
     /// Fired once the journey's full duration has elapsed.
@@ -15,15 +14,19 @@ struct SessionView: View {
     @State private var tunnel = InAppTunnelController()
     @State private var followTrain = true
     @State private var appeared = false
-    @State private var showEndConfirm = false
+    @State private var scenario: FocusScenario
+    @State private var mapStyle: MapStyle
 
     @Environment(\.scenePhase) private var scenePhase
+    @Environment(SessionStore.self) private var session
 
     init(ticket: Ticket, onArrive: @escaping () -> Void, onEnd: @escaping () -> Void) {
         self.ticket = ticket
         self.onArrive = onArrive
         self.onEnd = onEnd
         _model = State(initialValue: SessionViewModel(ticket: ticket))
+        _scenario = State(initialValue: FocusScenario(rawValue: ticket.scenario) ?? .forest)
+        _mapStyle = State(initialValue: MapStyle(rawValue: ticket.mapStyle) ?? .monochrome)
     }
 
     var body: some View {
@@ -32,35 +35,112 @@ struct SessionView: View {
                 from: model.fromCoordinate,
                 to: model.toCoordinate,
                 fraction: model.progress,
-                style: model.mapStyle,
+                style: mapStyle,
                 showLabels: UserDefaults.standard.bool(forKey: "mapShowLabels"),
                 follow: followTrain
             )
             .ignoresSafeArea()
 
-            // Legibility scrim top + bottom.
             scrim
 
-            // Tunnel Mode active-state visual.
             TunnelHero(isActive: tunnel.isActive)
                 .animation(.easeInOut(duration: 0.5), value: tunnel.isActive)
 
-            VStack(spacing: 0) {
-                topBar
-                    .opacity(appeared ? 1 : 0)
-                    .offset(y: appeared ? 0 : -16)
+            // Top: destination title (centered) + end button (top-right).
+            VStack {
+                ZStack {
+                    SessionTitleLabel(text: destinationName)
+                        .padding(.horizontal, 60) // leave room for end button
+                        .opacity(appeared ? 1 : 0)
+                        .offset(y: appeared ? 0 : -16)
+
+                    HStack {
+                        Spacer()
+                        SessionEndButton(onEnd: onEnd)
+                            .opacity(appeared ? 1 : 0)
+                    }
+                }
+                .padding(.top, 8)
+                Spacer()
+            }
+            .padding(.horizontal, FT.Layout.sideMargin)
+
+            // Left + right control pills, vertically centered on the screen.
+            HStack {
+                SessionControlPill {
+                    SessionControlButton(
+                        systemName: "pause.fill",
+                        state: .disabled,
+                        accessibilityLabel: NSLocalizedString("session.pause", comment: ""),
+                        accessibilityValue: NSLocalizedString("session.pause.disabled.a11y", comment: "")
+                    ) {}
+
+                    SessionMusicMenu(
+                        scenario: $scenario,
+                        onSelect: { session.updateScenario($0) }
+                    )
+                }
+                .opacity(appeared ? 1 : 0)
+                .offset(x: appeared ? 0 : -30)
 
                 Spacer()
 
-                countdownBlock
-                    .opacity(appeared ? 1 : 0)
-                    .scaleEffect(appeared ? 1 : 0.94)
+                SessionControlPill {
+                    SessionControlButton(
+                        systemName: tunnel.isActive ? "moon.zzz.fill" : "moon",
+                        state: tunnel.isActive ? .active : .idle,
+                        accessibilityLabel: NSLocalizedString(
+                            tunnel.isActive ? "session.tunnel.on" : "session.tunnel.off",
+                            comment: ""
+                        ),
+                        accessibilityValue: tunnel.isActive ? "on" : "off"
+                    ) {
+                        withAnimation(.spring(response: 0.4, dampingFraction: 0.82)) {
+                            tunnel.toggle()
+                        }
+                    }
 
+                    SessionControlButton(
+                        systemName: followTrain ? "scope" : "tram.fill",
+                        state: followTrain ? .active : .idle,
+                        accessibilityLabel: NSLocalizedString(
+                            followTrain ? "session.fit" : "session.progress",
+                            comment: ""
+                        ),
+                        accessibilityValue: followTrain ? "on" : "off"
+                    ) {
+                        UIImpactFeedbackGenerator(style: .light).impactOccurred()
+                        withAnimation(.spring(response: 0.4, dampingFraction: 0.82)) {
+                            followTrain.toggle()
+                        }
+                    }
+
+                    mapStyleMenu
+                }
+                .opacity(appeared ? 1 : 0)
+                .offset(x: appeared ? 0 : 30)
+            }
+            .padding(.horizontal, FT.Layout.sideMargin)
+
+            // Bottom: time + distance tiles.
+            VStack {
                 Spacer()
-
-                bottomBar
-                    .opacity(appeared ? 1 : 0)
-                    .offset(y: appeared ? 0 : 24)
+                HStack(alignment: .bottom) {
+                    SessionMetricTile(
+                        label: NSLocalizedString("session.time.remaining", comment: ""),
+                        value: model.remainingMinutesText,
+                        alignment: .leading
+                    )
+                    Spacer()
+                    SessionMetricTile(
+                        label: NSLocalizedString("session.distance.remaining", comment: ""),
+                        value: model.remainingDistanceText,
+                        alignment: .trailing
+                    )
+                }
+                .padding(.bottom, 16)
+                .opacity(appeared ? 1 : 0)
+                .offset(y: appeared ? 0 : 24)
             }
             .padding(.horizontal, FT.Layout.sideMargin)
         }
@@ -69,7 +149,6 @@ struct SessionView: View {
         .onAppear {
             model.onArrive = onArrive
             model.start()
-            // Default Tunnel to the traveller's quiet-carriage preference.
             if UserDefaults.standard.bool(forKey: "quietCarriageEnabled") {
                 tunnel.enter()
             }
@@ -81,14 +160,12 @@ struct SessionView: View {
         .onChange(of: scenePhase) { _, phase in
             if phase == .active { model.refresh() }
         }
-        .confirmationDialog(
-            NSLocalizedString("session.end", comment: ""),
-            isPresented: $showEndConfirm,
-            titleVisibility: .visible
-        ) {
-            Button(NSLocalizedString("session.end", comment: ""), role: .destructive, action: onEnd)
-            Button(NSLocalizedString("common.back", comment: ""), role: .cancel) {}
-        }
+    }
+
+    // MARK: - Destination name
+
+    private var destinationName: String {
+        StationPool.station(forCode: ticket.toCode)?.city ?? ticket.toCode
     }
 
     // MARK: - Scrim
@@ -111,117 +188,31 @@ struct SessionView: View {
         .allowsHitTesting(false)
     }
 
-    // MARK: - Top bar (route + end control)
+    // MARK: - Map style menu
 
-    private var topBar: some View {
-        HStack(alignment: .center) {
-            VStack(alignment: .leading, spacing: 8) {
-                routeRow
-                Text(model.ticket.code)
-                    .font(FT.Typography.ticketField)
-                    .foregroundStyle(FT.Palette.textMuted)
-            }
-            Spacer()
-            Button { showEndConfirm = true } label: {
-                Image(systemName: "xmark")
-                    .font(.system(size: 16, weight: .bold))
-                    .foregroundStyle(FT.Palette.white)
-                    .frame(width: 40, height: 40)
-                    .background(Circle().fill(FT.Palette.black.opacity(0.5)))
-                    .overlay(Circle().stroke(FT.Palette.textMuted.opacity(0.3), lineWidth: 1))
-            }
-            .buttonStyle(.plain)
-        }
-        .padding(.top, 8)
-    }
-
-    private var routeRow: some View {
-        HStack(spacing: 10) {
-            StationBadge(code: model.ticket.fromCode, variant: .rail)
-            Image(systemName: "arrow.right")
-                .font(.system(size: 12, weight: .bold))
-                .foregroundStyle(FT.Palette.textSecondary)
-            StationBadge(code: model.ticket.toCode, variant: .brass)
-        }
-    }
-
-    // MARK: - Countdown
-
-    private var countdownBlock: some View {
-        VStack(spacing: 10) {
-            CountdownLabel(text: model.remainingText)
-                .animation(.spring(response: 0.4, dampingFraction: 0.9), value: model.remainingText)
-
-            HStack(spacing: 6) {
-                Image(systemName: "point.topleft.down.curvedto.point.bottomright.up")
-                    .font(.system(size: 12, weight: .bold))
-                Text("\(NSLocalizedString("session.distance.remaining", comment: "")) · \(model.remainingDistanceText)")
-                    .font(FT.Typography.caption)
-            }
-            .foregroundStyle(FT.Palette.textSecondary)
-        }
-    }
-
-    // MARK: - Bottom bar (tunnel + fit)
-
-    private var bottomBar: some View {
-        VStack(spacing: 14) {
-            tunnelToggle
-            HStack(spacing: 12) {
-                fitToggle
-            }
-        }
-        .padding(.bottom, 16)
-    }
-
-    private var tunnelToggle: some View {
-        Button {
-            withAnimation(.spring(response: 0.4, dampingFraction: 0.82)) {
-                tunnel.toggle()
+    private var mapStyleMenu: some View {
+        Menu {
+            ForEach(MapStyle.allCases) { option in
+                Button {
+                    UIImpactFeedbackGenerator(style: .light).impactOccurred()
+                    mapStyle = option
+                    session.updateMapStyle(option)
+                } label: {
+                    Label {
+                        Text(LocalizedStringKey(option.displayKey))
+                    } icon: {
+                        Image(systemName: mapStyle == option ? "checkmark" : option.symbol)
+                    }
+                }
             }
         } label: {
-            HStack(spacing: 10) {
-                Image(systemName: tunnel.isActive ? "moon.zzz.fill" : "moon")
-                    .font(.system(size: 17, weight: .bold))
-                Text(NSLocalizedString(
-                    tunnel.isActive ? "session.tunnel.on" : "session.tunnel.off",
-                    comment: ""
-                ))
-                .font(FT.Typography.button)
-            }
-            .foregroundStyle(tunnel.isActive ? FT.Palette.ink : FT.Palette.white)
-            .frame(maxWidth: .infinity)
-            .frame(height: 56)
-            .background(
-                RoundedRectangle(cornerRadius: 20)
-                    .fill(tunnel.isActive ? FT.Palette.brandRail : FT.Palette.bgElevated.opacity(0.7))
-            )
-            .overlay(
-                RoundedRectangle(cornerRadius: 20)
-                    .stroke(tunnel.isActive ? Color.clear : FT.Palette.textMuted.opacity(0.25), lineWidth: 1)
-            )
+            Image(systemName: "map")
+                .font(.system(size: 16, weight: .bold))
+                .foregroundStyle(FT.Palette.white)
+                .frame(width: 40, height: 40)
+                .background(Circle().fill(FT.Palette.black.opacity(0.5)))
+                .overlay(Circle().stroke(FT.Palette.textMuted.opacity(0.3), lineWidth: 1))
         }
-        .buttonStyle(.plain)
-    }
-
-    private var fitToggle: some View {
-        Button {
-            UIImpactFeedbackGenerator(style: .light).impactOccurred()
-            withAnimation(.spring(response: 0.4, dampingFraction: 0.82)) {
-                followTrain.toggle()
-            }
-        } label: {
-            HStack(spacing: 8) {
-                Image(systemName: followTrain ? "scope" : "tram.fill")
-                    .font(.system(size: 14, weight: .bold))
-                Text(NSLocalizedString(followTrain ? "session.fit" : "session.progress", comment: ""))
-                    .font(.system(size: 15, weight: .semibold))
-            }
-            .foregroundStyle(FT.Palette.textSecondary)
-            .frame(maxWidth: .infinity)
-            .padding(.vertical, 12)
-            .background(Capsule().fill(FT.Palette.bgElevated.opacity(0.5)))
-        }
-        .buttonStyle(.plain)
+        .accessibilityLabel(Text(NSLocalizedString("session.mapstyle.a11y", comment: "")))
     }
 }
