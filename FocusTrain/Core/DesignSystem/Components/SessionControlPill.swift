@@ -11,14 +11,7 @@ struct SessionControlPill<Content: View>: View {
         }
         .padding(.vertical, 6)
         .padding(.horizontal, 6)
-        .background(
-            Capsule()
-                .fill(FT.Palette.bgElevated.opacity(0.5))
-        )
-        .overlay(
-            Capsule()
-                .stroke(FT.Palette.textMuted.opacity(0.25), lineWidth: 1)
-        )
+        .glassEffect(.regular, in: Capsule())
     }
 }
 

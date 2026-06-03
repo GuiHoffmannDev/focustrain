@@ -37,8 +37,9 @@ struct SessionControlButton: View {
                 .font(.system(size: 16, weight: .bold))
                 .foregroundStyle(glyphColor)
                 .frame(width: 40, height: 40)
-                .background(Circle().fill(backgroundFill))
-                .overlay(Circle().stroke(strokeColor, lineWidth: 1))
+                .background {
+                    backgroundSurface
+                }
         }
         .buttonStyle(.plain)
         .disabled(state == .disabled)
@@ -47,27 +48,23 @@ struct SessionControlButton: View {
         .accessibilityValue(accessibilityValue ?? "")
     }
 
+    @ViewBuilder
+    private var backgroundSurface: some View {
+        switch state {
+        case .active:
+            Circle().fill(FT.Palette.white)
+        case .idle, .disabled:
+            Circle()
+                .fill(.clear)
+                .glassEffect(.regular, in: Circle())
+        }
+    }
+
     private var glyphColor: Color {
         switch state {
         case .active:   return FT.Palette.ink
         case .idle:     return FT.Palette.white
         case .disabled: return FT.Palette.white
-        }
-    }
-
-    private var backgroundFill: Color {
-        switch state {
-        case .active:   return FT.Palette.white
-        case .idle:     return FT.Palette.black.opacity(0.5)
-        case .disabled: return FT.Palette.black.opacity(0.5)
-        }
-    }
-
-    private var strokeColor: Color {
-        switch state {
-        case .active:   return .clear
-        case .idle:     return FT.Palette.textMuted.opacity(0.3)
-        case .disabled: return FT.Palette.textMuted.opacity(0.3)
         }
     }
 }

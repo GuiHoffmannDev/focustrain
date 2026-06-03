@@ -15,8 +15,9 @@ struct SessionEndButton: View {
                 .font(.system(size: 16, weight: .bold))
                 .foregroundStyle(FT.Palette.white)
                 .frame(width: 40, height: 40)
-                .background(Circle().fill(FT.Palette.black.opacity(0.5)))
-                .overlay(Circle().stroke(FT.Palette.textMuted.opacity(0.3), lineWidth: 1))
+                .background {
+                    Color.clear.glassEffect(.regular, in: Circle())
+                }
         }
         .buttonStyle(.plain)
         .accessibilityLabel(Text(NSLocalizedString("session.end", comment: "End the ride")))
