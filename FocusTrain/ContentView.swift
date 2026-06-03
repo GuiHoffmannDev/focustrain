@@ -153,7 +153,7 @@ private struct RidePresenter: View {
     init(ticket: Ticket) {
         self.ticket = ticket
         // If the duration already elapsed while away, jump straight to arrival.
-        _stage = State(initialValue: Date.now >= ticket.arrivalDate ? .arrived : .riding)
+        _stage = State(initialValue: ticket.isArrived() ? .arrived : .riding)
     }
 
     var body: some View {

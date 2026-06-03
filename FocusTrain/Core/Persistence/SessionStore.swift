@@ -22,10 +22,10 @@ final class SessionStore {
         load()
     }
 
-    /// Resolve the current phase against the wall clock.
+    /// Resolve the current phase, pause-aware via `Ticket.isArrived()`.
     var phase: Phase {
         guard let ticket = activeTicket else { return .idle }
-        return Date.now >= ticket.arrivalDate ? .arrived : .riding
+        return ticket.isArrived() ? .arrived : .riding
     }
 
     func start(_ ticket: Ticket) {
@@ -51,6 +51,15 @@ final class SessionStore {
     func updateMapStyle(_ style: MapStyle) {
         guard var ticket = activeTicket, ticket.mapStyle != style.rawValue else { return }
         ticket.mapStyle = style.rawValue
+        activeTicket = ticket
+    }
+
+    /// Persists pause-state changes on the active ticket. Used by
+    /// `SessionViewModel.togglePause()` so the choice survives backgrounding.
+    func updatePauseState(pausedAt: Date?, accumulatedPause: TimeInterval) {
+        guard var ticket = activeTicket else { return }
+        ticket.pausedAt = pausedAt
+        ticket.accumulatedPause = accumulatedPause
         activeTicket = ticket
     }
 
