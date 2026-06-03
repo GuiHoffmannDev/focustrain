@@ -9,7 +9,8 @@ import CoreLocation
 @MainActor
 @Observable
 final class SessionViewModel {
-    let ticket: Ticket
+    private(set) var ticket: Ticket
+    weak var store: SessionStore?
 
     /// Called once when the journey's duration has fully elapsed.
     var onArrive: () -> Void = {}
@@ -17,8 +18,9 @@ final class SessionViewModel {
     private(set) var now: Date = .now
     private var timer: Timer?
 
-    init(ticket: Ticket) {
+    init(ticket: Ticket, store: SessionStore? = nil) {
         self.ticket = ticket
+        self.store = store
     }
 
     // MARK: - Derived state
@@ -32,7 +34,17 @@ final class SessionViewModel {
     }
 
     var elapsed: TimeInterval {
-        max(0, now.timeIntervalSince(ticket.departDate))
+        let raw = now.timeIntervalSince(ticket.departDate)
+            - ticket.accumulatedPause
+            - currentPauseSlice
+        return max(0, raw)
+    }
+
+    var isPaused: Bool { ticket.pausedAt != nil }
+
+    var currentPauseSlice: TimeInterval {
+        guard let pausedAt = ticket.pausedAt else { return 0 }
+        return max(0, now.timeIntervalSince(pausedAt))
     }
 
     var remaining: TimeInterval {
@@ -118,5 +130,18 @@ final class SessionViewModel {
             stop()
             onArrive()
         }
+    }
+
+    func togglePause() {
+        if ticket.pausedAt != nil {
+            ticket.accumulatedPause += currentPauseSlice
+            ticket.pausedAt = nil
+        } else {
+            ticket.pausedAt = now
+        }
+        store?.updatePauseState(
+            pausedAt: ticket.pausedAt,
+            accumulatedPause: ticket.accumulatedPause
+        )
     }
 }
