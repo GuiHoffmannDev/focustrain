@@ -21,6 +21,8 @@ struct SessionView: View {
     @State private var appeared = false
     @State private var scenario: FocusScenario
     @State private var mapStyle: MapStyle
+    @State private var showMapStyleSheet = false
+    @AppStorage("mapShowLabels") private var mapShowLabels: Bool = true
 
     @Environment(\.scenePhase) private var scenePhase
     @Environment(SessionStore.self) private var session
@@ -41,7 +43,7 @@ struct SessionView: View {
                 to: model.toCoordinate,
                 fraction: model.progress,
                 style: mapStyle,
-                showLabels: UserDefaults.standard.bool(forKey: "mapShowLabels"),
+                showLabels: mapShowLabels,
                 follow: cameraMode == .centerTrain
             )
             .ignoresSafeArea()
@@ -135,7 +137,14 @@ struct SessionView: View {
                         }
                     }
 
-                    mapStyleMenu
+                    SessionControlButton(
+                        systemName: "map",
+                        state: .idle,
+                        accessibilityLabel: NSLocalizedString("session.mapstyle.a11y", comment: "")
+                    ) {
+                        UIImpactFeedbackGenerator(style: .light).impactOccurred()
+                        showMapStyleSheet = true
+                    }
 
                     SessionControlButton(
                         systemName: tunnel.isActive ? "moon.zzz.fill" : "moon",
@@ -196,6 +205,35 @@ struct SessionView: View {
         .onChange(of: scenePhase) { _, phase in
             if phase == .active { model.refresh() }
         }
+        .onChange(of: mapStyle) { _, newValue in
+            session.updateMapStyle(newValue)
+        }
+        .sheet(isPresented: $showMapStyleSheet) {
+            NavigationStack {
+                MapStyleSelector(selection: $mapStyle, showLabels: $mapShowLabels)
+                    .padding()
+                    .navigationTitle(Text(NSLocalizedString("session.mapstyle.title", comment: "")))
+                    .navigationBarTitleDisplayMode(.inline)
+                    .toolbar {
+                        ToolbarItem(placement: .topBarTrailing) {
+                            Button {
+                                showMapStyleSheet = false
+                            } label: {
+                                Image(systemName: "xmark")
+                                    .font(.system(size: 14, weight: .bold))
+                                    .foregroundStyle(FT.Palette.textPrimary)
+                                    .frame(width: 30, height: 30)
+                                    .background(
+                                        Circle().fill(FT.Palette.bgElevated.opacity(0.6))
+                                    )
+                            }
+                        }
+                    }
+            }
+            .presentationDetents([.fraction(0.55)])
+            .presentationBackground(.ultraThinMaterial)
+            .presentationDragIndicator(.visible)
+        }
     }
 
     // MARK: - Destination name
@@ -224,31 +262,4 @@ struct SessionView: View {
         .allowsHitTesting(false)
     }
 
-    // MARK: - Map style menu
-
-    private var mapStyleMenu: some View {
-        Menu {
-            ForEach(MapStyle.allCases) { option in
-                Button {
-                    UIImpactFeedbackGenerator(style: .light).impactOccurred()
-                    mapStyle = option
-                    session.updateMapStyle(option)
-                } label: {
-                    Label {
-                        Text(LocalizedStringKey(option.displayKey))
-                    } icon: {
-                        Image(systemName: mapStyle == option ? "checkmark" : option.symbol)
-                    }
-                }
-            }
-        } label: {
-            Image(systemName: "map")
-                .font(.system(size: 16, weight: .bold))
-                .foregroundStyle(FT.Palette.white)
-                .frame(width: 40, height: 40)
-                .background(Circle().fill(FT.Palette.black.opacity(0.5)))
-                .overlay(Circle().stroke(FT.Palette.textMuted.opacity(0.3), lineWidth: 1))
-        }
-        .accessibilityLabel(Text(NSLocalizedString("session.mapstyle.a11y", comment: "")))
-    }
 }
