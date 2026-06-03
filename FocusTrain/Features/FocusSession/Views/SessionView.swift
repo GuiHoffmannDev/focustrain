@@ -41,6 +41,12 @@ struct SessionView: View {
             )
             .ignoresSafeArea()
 
+            FT.Palette.black
+                .opacity(model.isPaused ? 0.3 : 0)
+                .ignoresSafeArea()
+                .allowsHitTesting(false)
+                .animation(.easeInOut(duration: 0.3), value: model.isPaused)
+
             scrim
 
             TunnelHero(isActive: tunnel.isActive)
@@ -56,10 +62,14 @@ struct SessionView: View {
 
                     HStack {
                         Spacer()
-                        SessionEndButton(onEnd: onEnd)
-                            .opacity(appeared ? 1 : 0)
-                            .offset(y: appeared ? 0 : -16)
+                        if model.isPaused {
+                            SessionEndButton(onEnd: onEnd)
+                                .opacity(appeared ? 1 : 0)
+                                .offset(y: appeared ? 0 : -16)
+                                .transition(.opacity.combined(with: .move(edge: .top)))
+                        }
                     }
+                    .animation(.spring(response: 0.4, dampingFraction: 0.82), value: model.isPaused)
                 }
                 .padding(.top, 8)
                 Spacer()
@@ -70,11 +80,19 @@ struct SessionView: View {
             HStack {
                 SessionControlPill {
                     SessionControlButton(
-                        systemName: "pause.fill",
-                        state: .disabled,
-                        accessibilityLabel: NSLocalizedString("session.pause", comment: ""),
-                        accessibilityValue: NSLocalizedString("session.pause.disabled.a11y", comment: "")
-                    ) {}
+                        systemName: model.isPaused ? "play.fill" : "pause.fill",
+                        state: model.isPaused ? .active : .idle,
+                        accessibilityLabel: NSLocalizedString(
+                            model.isPaused ? "session.resume" : "session.pause",
+                            comment: ""
+                        ),
+                        accessibilityValue: model.isPaused ? "paused" : "running"
+                    ) {
+                        UIImpactFeedbackGenerator(style: .medium).impactOccurred()
+                        withAnimation(.spring(response: 0.4, dampingFraction: 0.82)) {
+                            model.togglePause()
+                        }
+                    }
 
                     SessionMusicMenu(
                         scenario: $scenario,
@@ -149,6 +167,7 @@ struct SessionView: View {
         .background(FT.Palette.black)
         .navigationBarBackButtonHidden(true)
         .onAppear {
+            model.store = session
             model.onArrive = onArrive
             model.start()
             if UserDefaults.standard.bool(forKey: "quietCarriageEnabled") {
