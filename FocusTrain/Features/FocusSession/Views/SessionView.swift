@@ -47,6 +47,7 @@ struct SessionView: View {
                 follow: cameraMode == .centerTrain
             )
             .ignoresSafeArea()
+            .saturation(mapStyle == .monochrome ? 0 : 1)
 
             FT.Palette.black
                 .opacity(model.isPaused ? 0.3 : 0)
