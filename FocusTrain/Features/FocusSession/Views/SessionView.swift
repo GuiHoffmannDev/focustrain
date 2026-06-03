@@ -4,6 +4,11 @@ import SwiftUI
 /// floats on top — destination title at the top, side control pills hugging
 /// the edges, and tiny time/distance metric tiles in the bottom corners.
 struct SessionView: View {
+    enum CameraMode {
+        case fitRoute
+        case centerTrain
+    }
+
     let ticket: Ticket
     /// Fired once the journey's full duration has elapsed.
     var onArrive: () -> Void
@@ -12,7 +17,7 @@ struct SessionView: View {
 
     @State private var model: SessionViewModel
     @State private var tunnel = InAppTunnelController()
-    @State private var followTrain = true
+    @State private var cameraMode: CameraMode = .centerTrain
     @State private var appeared = false
     @State private var scenario: FocusScenario
     @State private var mapStyle: MapStyle
@@ -37,7 +42,7 @@ struct SessionView: View {
                 fraction: model.progress,
                 style: mapStyle,
                 showLabels: UserDefaults.standard.bool(forKey: "mapShowLabels"),
-                follow: followTrain
+                follow: cameraMode == .centerTrain
             )
             .ignoresSafeArea()
 
@@ -76,7 +81,6 @@ struct SessionView: View {
             }
             .padding(.horizontal, FT.Layout.sideMargin)
 
-            // Left + right control pills, vertically centered on the screen.
             HStack {
                 SessionControlPill {
                     SessionControlButton(
@@ -104,7 +108,35 @@ struct SessionView: View {
 
                 Spacer()
 
-                SessionControlPill {
+                VStack(spacing: 12) {
+                    SessionControlPill {
+                        SessionControlButton(
+                            systemName: "arrow.up.left.and.arrow.down.right",
+                            state: cameraMode == .fitRoute ? .active : .idle,
+                            accessibilityLabel: NSLocalizedString("session.fit.route", comment: ""),
+                            accessibilityValue: cameraMode == .fitRoute ? "on" : "off"
+                        ) {
+                            UIImpactFeedbackGenerator(style: .light).impactOccurred()
+                            withAnimation(.spring(response: 0.4, dampingFraction: 0.82)) {
+                                cameraMode = .fitRoute
+                            }
+                        }
+
+                        SessionControlButton(
+                            systemName: "scope",
+                            state: cameraMode == .centerTrain ? .active : .idle,
+                            accessibilityLabel: NSLocalizedString("session.center.train", comment: ""),
+                            accessibilityValue: cameraMode == .centerTrain ? "on" : "off"
+                        ) {
+                            UIImpactFeedbackGenerator(style: .light).impactOccurred()
+                            withAnimation(.spring(response: 0.4, dampingFraction: 0.82)) {
+                                cameraMode = .centerTrain
+                            }
+                        }
+                    }
+
+                    mapStyleMenu
+
                     SessionControlButton(
                         systemName: tunnel.isActive ? "moon.zzz.fill" : "moon",
                         state: tunnel.isActive ? .active : .idle,
@@ -119,23 +151,6 @@ struct SessionView: View {
                             tunnel.toggle()
                         }
                     }
-
-                    SessionControlButton(
-                        systemName: followTrain ? "scope" : "tram.fill",
-                        state: followTrain ? .active : .idle,
-                        accessibilityLabel: NSLocalizedString(
-                            followTrain ? "session.fit" : "session.progress",
-                            comment: ""
-                        ),
-                        accessibilityValue: followTrain ? "on" : "off"
-                    ) {
-                        UIImpactFeedbackGenerator(style: .light).impactOccurred()
-                        withAnimation(.spring(response: 0.4, dampingFraction: 0.82)) {
-                            followTrain.toggle()
-                        }
-                    }
-
-                    mapStyleMenu
                 }
                 .opacity(appeared ? 1 : 0)
                 .offset(x: appeared ? 0 : 30)
