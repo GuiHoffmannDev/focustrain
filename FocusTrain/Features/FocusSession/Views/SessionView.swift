@@ -147,10 +147,10 @@ struct SessionView: View {
                     }
 
                     SessionControlButton(
-                        systemName: tunnel.isActive ? "moon.zzz.fill" : "moon",
+                        systemName: "tram.tunnel.fill",
                         state: tunnel.isActive ? .active : .idle,
                         accessibilityLabel: NSLocalizedString(
-                            tunnel.isActive ? "session.tunnel.on" : "session.tunnel.off",
+                            tunnel.isActive ? "session.rail.on" : "session.rail.off",
                             comment: ""
                         ),
                         accessibilityValue: tunnel.isActive ? "on" : "off"
