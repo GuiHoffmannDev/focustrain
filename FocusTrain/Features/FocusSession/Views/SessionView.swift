@@ -17,11 +17,12 @@ struct SessionView: View {
 
     @State private var model: SessionViewModel
     @State private var tunnel = InAppTunnelController()
+    @State private var sound = AmbientSoundController()
     @State private var cameraMode: CameraMode = .centerTrain
     @State private var appeared = false
-    @State private var scenario: FocusScenario
     @State private var mapStyle: MapStyle
     @State private var showMapStyleSheet = false
+    @State private var showSoundSheet = false
     @AppStorage("mapShowLabels") private var mapShowLabels: Bool = true
 
     @Environment(\.scenePhase) private var scenePhase
@@ -32,7 +33,6 @@ struct SessionView: View {
         self.onArrive = onArrive
         self.onEnd = onEnd
         _model = State(initialValue: SessionViewModel(ticket: ticket))
-        _scenario = State(initialValue: FocusScenario(rawValue: ticket.scenario) ?? .forest)
         _mapStyle = State(initialValue: MapStyle(rawValue: ticket.mapStyle) ?? .monochrome)
     }
 
@@ -101,10 +101,15 @@ struct SessionView: View {
                         }
                     }
 
-                    SessionMusicMenu(
-                        scenario: $scenario,
-                        onSelect: { session.updateScenario($0) }
-                    )
+                    SessionControlButton(
+                        systemName: "music.note",
+                        state: sound.selected != nil ? .active : .idle,
+                        accessibilityLabel: NSLocalizedString("session.sound.a11y", comment: ""),
+                        accessibilityValue: sound.selected?.rawValue ?? "off"
+                    ) {
+                        UIImpactFeedbackGenerator(style: .light).impactOccurred()
+                        showSoundSheet = true
+                    }
                 }
                 .opacity(appeared ? 1 : 0)
                 .offset(x: appeared ? 0 : -30)
@@ -234,6 +239,12 @@ struct SessionView: View {
             .presentationDetents([.fraction(0.55)])
             .presentationBackground(.ultraThinMaterial)
             .presentationDragIndicator(.visible)
+        }
+        .sheet(isPresented: $showSoundSheet) {
+            SoundSheet(sound: sound)
+                .presentationDetents([.large])
+                .presentationBackground(.ultraThinMaterial)
+                .presentationDragIndicator(.visible)
         }
     }
 
