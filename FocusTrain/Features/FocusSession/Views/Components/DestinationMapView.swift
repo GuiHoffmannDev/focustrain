@@ -6,9 +6,11 @@ import MapKit
 /// de trem que solidificam ao entrar no alcance. Tocar um pin seleciona a estação.
 ///
 /// `DurationPickerModel.selectedIndex` é a única fonte de verdade; o anel e a
-/// câmera são *sinks* — nunca escrevem de volta (sem loop de eco). Segue o padrão
-/// `UIViewRepresentable` de `RouteMapView`/`GlobeHomeView` (UIKit disponível no
-/// Mac Catalyst, então sem guards de plataforma).
+/// câmera são *sinks* — nunca escrevem de volta (sem loop de eco). O usuário pode
+/// dar pan (2–3 dedos) e pinch-zoom para inspecionar as estações; a câmera só
+/// reenquadra sozinha quando a seleção muda. Segue o padrão `UIViewRepresentable`
+/// de `RouteMapView`/`GlobeHomeView` (UIKit disponível no Mac Catalyst, então sem
+/// guards de plataforma).
 struct DestinationMapView: UIViewRepresentable {
     let model: DurationPickerModel
 
@@ -17,11 +19,13 @@ struct DestinationMapView: UIViewRepresentable {
     func makeUIView(context: Context) -> MKMapView {
         let map = MKMapView()
         map.delegate = context.coordinator
-        map.preferredConfiguration = model.mapStyle.mapConfiguration(showLabels: false)
+        map.preferredConfiguration = model.mapStyle.mapConfiguration(showLabels: model.mapShowLabels)
+        context.coordinator.appliedStyle = model.mapStyle
+        context.coordinator.appliedShowLabels = model.mapShowLabels
         map.isRotateEnabled = false
         map.isPitchEnabled = false
-        map.isScrollEnabled = false
-        map.isZoomEnabled = false
+        map.isScrollEnabled = true   // pan para espiar as estações…
+        map.isZoomEnabled = true     // …e pinch para zoom in/out
         map.showsCompass = false
         map.showsScale = false
         map.showsBuildings = false
@@ -44,15 +48,23 @@ struct DestinationMapView: UIViewRepresentable {
 
         context.coordinator.applyRing(on: map)
         context.coordinator.reframe(map, animated: false)
+
+        // Pan só com 2–3 dedos: 1 dedo continua selecionando pins e o mapa não
+        // sai do lugar com toques incidentais. O pinch-zoom nativo segue valendo.
+        context.coordinator.restrictPanToMultiTouch(on: map)
+        let coordinator = context.coordinator
+        DispatchQueue.main.async { coordinator.restrictPanToMultiTouch(on: map) }
+
         return map
     }
 
     func updateUIView(_ map: MKMapView, context: Context) {
         let coord = context.coordinator
 
-        if coord.appliedStyle != model.mapStyle {
-            map.preferredConfiguration = model.mapStyle.mapConfiguration(showLabels: false)
+        if coord.appliedStyle != model.mapStyle || coord.appliedShowLabels != model.mapShowLabels {
+            map.preferredConfiguration = model.mapStyle.mapConfiguration(showLabels: model.mapShowLabels)
             coord.appliedStyle = model.mapStyle
+            coord.appliedShowLabels = model.mapShowLabels
         }
 
         // Origem resolvida pela CurrentCityResolver pode ter mudado.
@@ -89,6 +101,7 @@ struct DestinationMapView: UIViewRepresentable {
         var origin: OriginAnnotation?
         var ring: MKCircle?
         var appliedStyle: MapStyle?
+        var appliedShowLabels: Bool?
 
         init(model: DurationPickerModel) { self.model = model }
 
@@ -130,6 +143,26 @@ struct DestinationMapView: UIViewRepresentable {
         private func pointRect(_ c: CLLocationCoordinate2D) -> MKMapRect {
             let p = MKMapPoint(c)
             return MKMapRect(x: p.x, y: p.y, width: 0, height: 0)
+        }
+
+        // MARK: Gestos
+
+        /// Restringe o(s) pan recognizer(s) do próprio MKMapView a 2–3 dedos.
+        /// Arrastos de 1 dedo deixam de mover o mapa (o tap segue selecionando os
+        /// pins), enquanto 2 dedos fazem pan nativo — com momentum — e o pinch-zoom
+        /// continua funcionando junto. Só API pública; se a internals da Apple mudar
+        /// e nenhum recognizer for encontrado, o pan cai no padrão (ainda usável).
+        func restrictPanToMultiTouch(on map: MKMapView) {
+            for pan in Self.panRecognizers(in: map) {
+                pan.minimumNumberOfTouches = 2
+                pan.maximumNumberOfTouches = 3
+            }
+        }
+
+        private static func panRecognizers(in view: UIView) -> [UIPanGestureRecognizer] {
+            var found = (view.gestureRecognizers ?? []).compactMap { $0 as? UIPanGestureRecognizer }
+            for sub in view.subviews { found += panRecognizers(in: sub) }
+            return found
         }
 
         // MARK: MKMapViewDelegate
