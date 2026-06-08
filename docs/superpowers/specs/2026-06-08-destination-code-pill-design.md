@@ -2,6 +2,7 @@
 
 **Data:** 2026-06-08
 **Tela:** `DurationPickerView` → `DestinationMapView` (picker de cidade/tempo da sessão de foco)
+**Referência visual:** `assets/2026-06-08-destination-code-pill-reference.png`
 
 ## Problema
 
