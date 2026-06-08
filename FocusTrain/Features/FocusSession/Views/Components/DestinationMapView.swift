@@ -39,7 +39,7 @@ struct DestinationMapView: UIViewRepresentable {
 
         var pins: [StationAnnotation] = []
         for (idx, dest) in model.destinations.enumerated() {
-            let a = StationAnnotation(index: idx, title: dest.city)
+            let a = StationAnnotation(index: idx, title: dest.city, code: dest.code)
             a.coordinate = dest.station.coordinate
             pins.append(a)
         }
@@ -215,9 +215,11 @@ final class StationAnnotation: NSObject, MKAnnotation {
     let index: Int
     @objc dynamic var coordinate = CLLocationCoordinate2D()
     let title: String?
-    init(index: Int, title: String) {
+    let code: String
+    init(index: Int, title: String, code: String) {
         self.index = index
         self.title = title
+        self.code = code
         super.init()
     }
 }
