@@ -336,32 +336,48 @@ final class StationAnnotationView: MKAnnotationView {
         currentState = state
         switch state {
         case .ghost:
+            pill.isHidden = true
+            disc.isHidden = false
             alpha = 0.3
             transform = CGAffineTransform(scaleX: 0.6, y: 0.6)
             disc.layer.borderColor = UIColor.white.withAlphaComponent(0.4).cgColor
             disc.layer.shadowOpacity = 0
             stopPulse()
         case .solid:
+            pill.isHidden = true
+            disc.isHidden = false
             alpha = 1.0
             transform = .identity
             disc.layer.borderColor = UIColor.white.cgColor
             disc.layer.shadowOpacity = 0
-            startPulse(color: .white)
+            startPulse(color: .white, capsule: false)
         case .selected:
+            disc.isHidden = true
+            pill.isHidden = false
             alpha = 1.0
-            transform = CGAffineTransform(scaleX: 1.15, y: 1.15)
-            disc.layer.borderColor = Self.brass.cgColor
-            disc.layer.shadowColor = Self.brass.cgColor
-            disc.layer.shadowRadius = 8
-            disc.layer.shadowOffset = .zero
-            disc.layer.shadowOpacity = 0.8
-            startPulse(color: Self.brass)
+            transform = .identity
+            layoutPill()
+            pill.layer.shadowOpacity = 0.85
+            startPulse(color: Self.brass, capsule: true)
+            // Leve "expandir" pra dar vida à troca de destino.
+            pill.transform = CGAffineTransform(scaleX: 0.85, y: 0.85)
+            UIView.animate(withDuration: 0.18, delay: 0,
+                           options: [.curveEaseOut, .allowUserInteraction, .beginFromCurrentState]) {
+                self.pill.transform = .identity
+            }
         }
     }
 
-    private func startPulse(color: UIColor) {
+    private func startPulse(color: UIColor, capsule: Bool) {
+        if capsule {
+            pulse.frame = pill.frame
+            pulse.cornerRadius = Self.pillHeight / 2
+        } else {
+            pulse.frame = bounds
+            pulse.cornerRadius = bounds.width / 2
+        }
         pulse.borderColor = color.cgColor
-        // Restart so the running cycle picks up the new borderColor (white → brass on solid→selected).
+        // Restart so the running cycle picks up the new geometry/color.
         pulse.removeAnimation(forKey: "pulse")
         let scale = CABasicAnimation(keyPath: "transform.scale")
         scale.fromValue = 1.0
@@ -387,6 +403,10 @@ final class StationAnnotationView: MKAnnotationView {
         currentState = nil
         stopPulse()
         transform = .identity
+        pill.transform = .identity
+        pill.isHidden = true
+        disc.isHidden = false
+        pill.layer.shadowOpacity = 0
     }
 }
 
