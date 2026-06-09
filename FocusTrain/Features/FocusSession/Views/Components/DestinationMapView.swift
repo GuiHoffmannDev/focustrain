@@ -240,6 +240,25 @@ final class StationAnnotationView: MKAnnotationView {
     private var currentState: PinState?
 
     private static let brass = UIColor(red: 0xE0/255.0, green: 0xA4/255.0, blue: 0x58/255.0, alpha: 1)
+    private static let pillInk = UIColor(white: 0.08, alpha: 1)
+    private static let pillHeight: CGFloat = 30
+    private static let pillIconSize: CGFloat = 15
+    private static let pillIconGap: CGFloat = 5
+    private static let pillPadLead: CGFloat = 9
+    private static let pillPadTrail: CGFloat = 11
+
+    private let pill = UIView()
+    private let pillIcon = UIImageView()
+    private let pillLabel = UILabel()
+
+    override var annotation: MKAnnotation? {
+        didSet {
+            guard let station = annotation as? StationAnnotation,
+                  bounds.width > 0 else { return }
+            pillLabel.text = station.code
+            layoutPill()
+        }
+    }
 
     override init(annotation: MKAnnotation?, reuseIdentifier: String?) {
         super.init(annotation: annotation, reuseIdentifier: reuseIdentifier)
@@ -266,9 +285,51 @@ final class StationAnnotationView: MKAnnotationView {
         glyph.tintColor = .white
         glyph.image = UIImage(systemName: "tram.fill")
         disc.addSubview(glyph)
+
+        // Pill do destino selecionado: transborda os bounds 36×36 (sem clipar),
+        // então o disco segue sendo o tap-target. Começa oculta.
+        clipsToBounds = false
+        pill.backgroundColor = Self.brass
+        pill.layer.cornerRadius = Self.pillHeight / 2
+        pill.layer.shadowColor = Self.brass.cgColor
+        pill.layer.shadowRadius = 8
+        pill.layer.shadowOffset = .zero
+        pill.layer.shadowOpacity = 0
+        pill.isUserInteractionEnabled = false
+        pill.isHidden = true
+        addSubview(pill)
+
+        pillIcon.image = UIImage(
+            systemName: "tram.fill",
+            withConfiguration: UIImage.SymbolConfiguration(pointSize: 11, weight: .bold)
+        )
+        pillIcon.tintColor = Self.pillInk
+        pillIcon.contentMode = .scaleAspectFit
+        pill.addSubview(pillIcon)
+
+        pillLabel.font = .systemFont(ofSize: 13, weight: .heavy)
+        pillLabel.textColor = Self.pillInk
+        pillLabel.textAlignment = .left
+        pill.addSubview(pillLabel)
     }
 
     required init?(coder: NSCoder) { fatalError("init(coder:) has not been implemented") }
+
+    /// Dimensiona a pill ao conteúdo (ícone + código) e a centraliza sobre o
+    /// ponto da estação. Larga para os lados a partir do centro dos bounds.
+    private func layoutPill() {
+        pillLabel.sizeToFit()
+        let labelW = ceil(pillLabel.bounds.width)
+        let w = Self.pillPadLead + Self.pillIconSize + Self.pillIconGap + labelW + Self.pillPadTrail
+        let h = Self.pillHeight
+        pill.bounds = CGRect(x: 0, y: 0, width: w, height: h)
+        pill.center = CGPoint(x: bounds.midX, y: bounds.midY)
+        pillIcon.frame = CGRect(x: Self.pillPadLead,
+                                y: (h - Self.pillIconSize) / 2,
+                                width: Self.pillIconSize, height: Self.pillIconSize)
+        pillLabel.frame = CGRect(x: Self.pillPadLead + Self.pillIconSize + Self.pillIconGap,
+                                 y: 0, width: labelW, height: h)
+    }
 
     func apply(state: PinState) {
         guard state != currentState else { return }
