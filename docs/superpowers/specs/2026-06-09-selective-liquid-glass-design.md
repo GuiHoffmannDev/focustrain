@@ -47,6 +47,14 @@ merge instead of stacking blur; it is a visual no-op for non-glass children.
 - `SessionControlButton`: idle → interactive glass circle; active → glass with
   white 0.75 tint.
 - `SessionControlPill`: capsule background → glass (non-interactive).
+
+**Amendment (post-device check):** buttons *inside* the pill must not paint
+their own glass — nested `glassEffect` shapes merge inside the container and
+smear the glyphs (metaball artifact, IMG_3814). The pill sets a
+`sessionControlGrouped` environment flag; grouped buttons render no idle chrome
+(the capsule provides the glass) and a plain `white.opacity(0.75)` circle when
+active. The pill no longer wraps content in `FTGlassContainer` since the capsule
+is its only glass surface.
 - `FTGlassIconButton`: glass circle (covers History, Onboarding, BoardingPass,
   Trends, SoundOverlay close/back buttons).
 - Legacy `ftGlassCapsule/Circle/Rounded` helpers gain a `liquid` pass-through.
