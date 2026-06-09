@@ -253,10 +253,9 @@ final class StationAnnotationView: MKAnnotationView {
 
     override var annotation: MKAnnotation? {
         didSet {
-            guard let station = annotation as? StationAnnotation,
-                  bounds.width > 0 else { return }
+            guard let station = annotation as? StationAnnotation else { return }
             pillLabel.text = station.code
-            layoutPill()
+            if bounds.width > 0 { layoutPill() }
         }
     }
 
