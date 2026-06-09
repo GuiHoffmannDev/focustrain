@@ -48,6 +48,19 @@ struct DestinationMapView: UIViewRepresentable {
         let coordinator = context.coordinator
         DispatchQueue.main.async { coordinator.restrictPanToMultiTouch(on: map) }
 
+        // Dessaturação do estilo monocromático: camada cinza em `saturationBlendMode`
+        // que precisa ficar ENTRE os tiles e os pins. `mapView(_:didAdd:)` a
+        // reposiciona abaixo das annotations sempre que elas entram, então o cinza
+        // atinge só o mapa e a pill do destino segue colorida em qualquer estilo.
+        let desat = UIView(frame: map.bounds)
+        desat.autoresizingMask = [.flexibleWidth, .flexibleHeight]
+        desat.backgroundColor = UIColor(white: 0.5, alpha: 1)
+        desat.layer.compositingFilter = "saturationBlendMode"
+        desat.isUserInteractionEnabled = false
+        desat.isHidden = model.mapStyle != .monochrome
+        map.addSubview(desat)
+        context.coordinator.desat = desat
+
         return map
     }
 
@@ -59,6 +72,7 @@ struct DestinationMapView: UIViewRepresentable {
             coord.appliedStyle = model.mapStyle
             coord.appliedShowLabels = model.mapShowLabels
         }
+        coord.desat?.isHidden = model.mapStyle != .monochrome
 
         // Origem resolvida pela CurrentCityResolver pode ter mudado.
         if let origin = coord.origin,
@@ -96,6 +110,7 @@ struct DestinationMapView: UIViewRepresentable {
         var pins: [StationAnnotation] = []
         private var appliedRoute: [String] = []
         var origin: OriginAnnotation?
+        var desat: UIView?
         var ring: MKCircle?
         var appliedStyle: MapStyle?
         var appliedShowLabels: Bool?
@@ -215,6 +230,16 @@ struct DestinationMapView: UIViewRepresentable {
             return nil
         }
 
+        /// Mantém a camada de dessaturação logo abaixo das annotations (e acima
+        /// dos tiles). Subviews adicionadas via `addSubview` ficam por cima dos
+        /// pins, então reposicionamos a cada vez que o MapKit cria pins novos.
+        func mapView(_ map: MKMapView, didAdd views: [MKAnnotationView]) {
+            guard let desat else { return }
+            if let firstAnnotation = map.subviews.first(where: { $0 is MKAnnotationView }) {
+                map.insertSubview(desat, belowSubview: firstAnnotation)
+            }
+        }
+
         func mapView(_ map: MKMapView, didSelect view: MKAnnotationView) {
             guard let station = view.annotation as? StationAnnotation else { return }
             model.beginInteraction(.map)
@@ -256,8 +281,9 @@ final class StationAnnotationView: MKAnnotationView {
     private var currentState: PinState?
 
     private static let brass = UIColor(red: 0xE0/255.0, green: 0xA4/255.0, blue: 0x58/255.0, alpha: 1)
-    private static let pillInk = UIColor(white: 0.08, alpha: 1)
+    private static let pillFill = UIColor(white: 0.06, alpha: 1)
     private static let pillHeight: CGFloat = 30
+    private static let pillCorner: CGFloat = 8
     private static let pillIconSize: CGFloat = 15
     private static let pillIconGap: CGFloat = 5
     private static let pillPadLead: CGFloat = 9
@@ -304,8 +330,10 @@ final class StationAnnotationView: MKAnnotationView {
         // Pill do destino selecionado: transborda os bounds 36×36 (sem clipar),
         // então o disco segue sendo o tap-target. Começa oculta.
         clipsToBounds = false
-        pill.backgroundColor = Self.brass
-        pill.layer.cornerRadius = Self.pillHeight / 2
+        pill.backgroundColor = Self.pillFill
+        pill.layer.cornerRadius = Self.pillCorner
+        pill.layer.borderWidth = 2
+        pill.layer.borderColor = Self.brass.cgColor
         pill.layer.shadowColor = Self.brass.cgColor
         pill.layer.shadowRadius = 8
         pill.layer.shadowOffset = .zero
@@ -318,12 +346,12 @@ final class StationAnnotationView: MKAnnotationView {
             systemName: "tram.fill",
             withConfiguration: UIImage.SymbolConfiguration(pointSize: 11, weight: .bold)
         )
-        pillIcon.tintColor = Self.pillInk
+        pillIcon.tintColor = Self.brass
         pillIcon.contentMode = .scaleAspectFit
         pill.addSubview(pillIcon)
 
         pillLabel.font = .systemFont(ofSize: 13, weight: .heavy)
-        pillLabel.textColor = Self.pillInk
+        pillLabel.textColor = Self.brass
         pillLabel.textAlignment = .left
         pill.addSubview(pillLabel)
     }
@@ -386,7 +414,7 @@ final class StationAnnotationView: MKAnnotationView {
     private func startPulse(color: UIColor, capsule: Bool) {
         if capsule {
             pulse.frame = pill.frame
-            pulse.cornerRadius = Self.pillHeight / 2
+            pulse.cornerRadius = Self.pillCorner
         } else {
             pulse.frame = bounds
             pulse.cornerRadius = bounds.width / 2
