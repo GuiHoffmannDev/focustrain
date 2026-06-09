@@ -26,12 +26,13 @@ struct OnboardingContainerView: View {
     private var topBar: some View {
         HStack {
             if vm.current != .welcome {
-                Button(action: { vm.back() }) {
-                    Image(systemName: "chevron.left")
-                        .font(.system(size: 17, weight: .semibold))
-                        .foregroundStyle(FT.Palette.textSecondary)
-                        .frame(width: 44, height: 44)
-                }
+                FTGlassIconButton(
+                    systemName: "chevron.left",
+                    size: 44,
+                    iconSize: 17,
+                    foreground: FT.Palette.textSecondary,
+                    accessibilityLabel: "common.back"
+                ) { vm.back() }
             } else {
                 Color.clear.frame(width: 44, height: 44)
             }
@@ -55,8 +56,14 @@ struct OnboardingContainerView: View {
                         .font(FT.Typography.button)
                         .foregroundStyle(FT.Palette.textSecondary)
                         .frame(height: 44)
-                        .padding(.horizontal, 8)
+                        .padding(.horizontal, 14)
+                        .background {
+                            Capsule()
+                                .fill(.clear)
+                                .ftGlassCapsule(interactive: true)
+                        }
                 }
+                .buttonStyle(.plain)
             } else {
                 Color.clear.frame(width: 44, height: 44)
             }

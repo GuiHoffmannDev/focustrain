@@ -2,51 +2,66 @@ import SwiftUI
 import Observation
 import CoreLocation
 
-/// Single source of truth for the destination/duration picker. `selectedIndex`
-/// into `destinations` is the only stored selection; everything visual derives
-/// from it. Seeds scenario/mapStyle from onboarding defaults and builds the
-/// active-session Ticket.
+/// Single source of truth for the destination/duration picker. The destination
+/// ladder is built from cities within a radius of the origin, queried on demand
+/// (see `CityDatabase.nearby` + `Destination.makeLadder`); the selected
+/// `Destination` drives both the focus duration and the route.
 @MainActor
 @Observable
 final class DurationPickerModel {
     enum InteractionSource: Equatable { case none, ruler, map }
 
-    let destinations: [Destination]
+    private(set) var destinations: [Destination] = []
     private(set) var origin: Station
-    private(set) var selectedIndex: Int
+    private(set) var selectedIndex: Int = 0
     var interactionSource: InteractionSource = .none
 
     var scenario: FocusScenario
     var mapStyle: MapStyle
+    var mapShowLabels: Bool
 
     private let haptics: DetentHapticsService
+    private let database: CityDatabase
+    private let homeCityStore: HomeCityStore
+    private var loaderTask: Task<Void, Never>?
 
-    var selectedDestination: Destination { destinations[selectedIndex] }
+    /// Radius (km) for the candidate query. The farthest ladder slot (150 min)
+    /// targets ~200 km; at ±100% tolerance the most distant candidate sits at
+    /// ~400 km, so 400 km covers the whole ladder.
+    private static let candidateRadiusKm: Double = 400
+    private static let candidateLimit = 1500
 
-    // MARK: - Estado derivado (sinks read-only; selectedIndex é a única fonte)
+    var selectedDestination: Destination? {
+        guard destinations.indices.contains(selectedIndex) else { return nil }
+        return destinations[selectedIndex]
+    }
+
+    var hasDestinations: Bool { !destinations.isEmpty }
 
     /// Estações "em alcance" (sólidas): índices 0...selectedIndex inclusive.
-    var reachableCount: Int { selectedIndex + 1 }
+    var reachableCount: Int { destinations.isEmpty ? 0 : selectedIndex + 1 }
 
     /// Raio cosmético do anel no mapa, em metros — estilizado a partir do
     /// nominalKm da estação selecionada (não é distância geográfica real).
     var ringRadiusMeters: CLLocationDistance {
-        Double(selectedDestination.nominalKm) * 1_000 * Self.ringScale
+        guard let dest = selectedDestination else { return 0 }
+        return Double(dest.nominalKm) * 1_000 * Self.ringScale
     }
 
     /// Multiplicador visual do anel (tunável).
     static let ringScale: Double = 1.0
 
-    init(destinations: [Destination] = Destination.ladder,
-         origin: Station? = nil,
-         haptics: DetentHapticsService = DetentHaptics.make()) {
-        self.destinations = destinations
+    init(origin: Station? = nil,
+         haptics: DetentHapticsService = DetentHaptics.make(),
+         database: CityDatabase = .shared,
+         homeCityStore: HomeCityStore = .shared) {
         self.haptics = haptics
-        self.origin = origin ?? StationPool.all.randomElement()!
-
-        // Default to 25 min (classic) if present, else the middle stop.
-        self.selectedIndex = destinations.firstIndex(where: { $0.minutes == 25 })
-            ?? (destinations.count / 2)
+        self.database = database
+        self.homeCityStore = homeCityStore
+        let resolved = homeCityStore.resolveOrigin(
+            gpsCity: nil, gpsCountryCode: nil, gpsCoordinate: nil
+        )
+        self.origin = origin ?? resolved
 
         let defaults = UserDefaults.standard
         if let raw = defaults.string(forKey: "defaultScenario"), let s = FocusScenario(rawValue: raw) {
@@ -59,9 +74,18 @@ final class DurationPickerModel {
         } else {
             mapStyle = .monochrome
         }
+        mapShowLabels = defaults.object(forKey: "mapShowLabels") == nil
+            ? true
+            : defaults.bool(forKey: "mapShowLabels")
+
+        scheduleLoad()
     }
 
     func prepareHaptics() { haptics.prepare() }
+
+    /// Soft tick fired by the ruler view when the drag crosses a sub-tick between
+    /// destinations. Doesn't change `selectedIndex` — purely tactile texture.
+    func fineTick() { haptics.fineTick() }
 
     func beginInteraction(_ source: InteractionSource) { interactionSource = source }
     func endInteraction() { interactionSource = .none }
@@ -69,29 +93,75 @@ final class DurationPickerModel {
     /// The one mutator. Clamps to range, ignores no-op changes (breaks echo
     /// loops), and ticks only when the index actually moves.
     func select(_ index: Int, from source: InteractionSource) {
+        guard !destinations.isEmpty else { return }
         let clamped = min(max(index, 0), destinations.count - 1)
         guard clamped != selectedIndex else { return }
         selectedIndex = clamped
         haptics.tick()
     }
 
-    /// Origin = the user's current city when available (set by the view from
-    /// CurrentCityResolver); otherwise the random fallback chosen in init.
-    func setOrigin(city: String, coordinate: CLLocationCoordinate2D) {
-        origin = Self.originStation(city: city, coordinate: coordinate)
+    /// Push GPS-resolved city into the model. Used by the view when
+    /// `CurrentCityResolver` finishes its reverse-geocode. Falls back to a
+    /// continent guess via country code; if `HomeCityStore` has a manual city
+    /// set, the manual choice still wins (resolved through `resolveOrigin`).
+    func setGPSOrigin(city: String,
+                      countryCode: String?,
+                      coordinate: CLLocationCoordinate2D) {
+        let resolved = homeCityStore.resolveOrigin(
+            gpsCity: city, gpsCountryCode: countryCode, gpsCoordinate: coordinate
+        )
+        applyResolved(resolved)
     }
 
-    static func originStation(city: String, coordinate: CLLocationCoordinate2D) -> Station {
-        let upper = city.uppercased().unicodeScalars.filter { CharacterSet.uppercaseLetters.contains($0) }
-        let code = String(String(String.UnicodeScalarView(upper)).prefix(3))
-        return Station(code: code.isEmpty ? "ORG" : code,
-                       city: city,
-                       lat: coordinate.latitude,
-                       lon: coordinate.longitude)
+    /// Replays origin resolution against the current `HomeCityStore` state.
+    /// Call this when the user changes their manual city in Settings.
+    func refreshFromHomeCityStore() {
+        let resolved = homeCityStore.resolveOrigin(
+            gpsCity: nil, gpsCountryCode: nil, gpsCoordinate: nil
+        )
+        applyResolved(resolved)
     }
 
-    func makeTicket(departingAt departDate: Date = .now) -> Ticket {
-        let dest = selectedDestination
+    private func applyResolved(_ newOrigin: Station) {
+        let originChanged = newOrigin.lat != origin.lat
+            || newOrigin.lon != origin.lon
+        guard originChanged else { return }
+        origin = newOrigin
+        scheduleLoad()
+    }
+
+    private func scheduleLoad() {
+        loaderTask?.cancel()
+        let origin = origin
+        let database = database
+        loaderTask = Task { [weak self] in
+            let candidates = await database.nearby(
+                center: origin.coordinate,
+                radiusKm: Self.candidateRadiusKm,
+                limit: Self.candidateLimit
+            )
+            if Task.isCancelled { return }
+            let ladder = Destination.makeLadder(origin: origin, candidates: candidates)
+            await MainActor.run {
+                guard let self else { return }
+                self.applyLadder(ladder)
+            }
+        }
+    }
+
+    private func applyLadder(_ ladder: [Destination]) {
+        destinations = ladder
+        guard !ladder.isEmpty else {
+            selectedIndex = 0
+            return
+        }
+        let defaultIndex = ladder.firstIndex(where: { $0.minutes == 25 })
+            ?? (ladder.count / 2)
+        selectedIndex = min(defaultIndex, ladder.count - 1)
+    }
+
+    func makeTicket(departingAt departDate: Date = .now) -> Ticket? {
+        guard let dest = selectedDestination else { return nil }
         return Ticket(
             scenario: scenario.rawValue,
             fromCode: origin.code, fromCity: origin.city,
@@ -105,29 +175,3 @@ final class DurationPickerModel {
         )
     }
 }
-
-#if DEBUG
-#Preview("DurationPickerModel self-check") {
-    let m = DurationPickerModel(haptics: NoopDetentService())
-    // clamp
-    m.select(999, from: .ruler); let clampHi = m.selectedIndex == m.destinations.count - 1
-    m.select(-5, from: .ruler);  let clampLo = m.selectedIndex == 0
-    let reach0 = m.reachableCount == 1            // index 0 → 1 estação em alcance
-    let ring0  = m.ringRadiusMeters               // raio na estação mais curta
-    // dedup: selecting the same index twice keeps it put
-    m.select(3, from: .map); let after = m.selectedIndex; m.select(3, from: .ruler)
-    let dedup = m.selectedIndex == after && after == 3
-    // ticket reflects selection
-    m.select(m.destinations.firstIndex { $0.minutes == 90 }!, from: .ruler)
-    let t = m.makeTicket()
-    let ticketOK = t.durationMinutes == 90 && t.toCode == "TYO" && t.fromCode == m.origin.code
-    let reachAll = m.reachableCount == m.destinations.count
-    let ringGrew = m.ringRadiusMeters > ring0 && m.ringRadiusMeters > 0
-    let pass = clampHi && clampLo && dedup && ticketOK && reach0 && reachAll && ringGrew
-    return VStack(alignment: .leading, spacing: 6) {
-        Text(pass ? "PASS ✓" : "FAIL ✗").font(.title.bold()).foregroundStyle(pass ? .green : .red)
-        Text("clampHi=\(clampHi) clampLo=\(clampLo) dedup=\(dedup) ticket=\(ticketOK)").font(.caption.monospaced())
-        Text("ticket: \(t.fromCode)→\(t.toCode) \(t.durationMinutes)m").font(.caption2.monospaced())
-    }.padding()
-}
-#endif

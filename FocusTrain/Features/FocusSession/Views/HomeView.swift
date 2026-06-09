@@ -16,41 +16,58 @@ struct HomeView: View {
 
     @State private var resolver = CurrentCityResolver()
     @State private var appeared = false
+    @Environment(HomeCityStore.self) private var homeCityStore
 
-    // Centre of the world if the user denies location: a soft default that
-    // still looks pretty (mid-Atlantic) and never resolves to "weird".
-    private static let fallbackCenter = CLLocationCoordinate2D(latitude: 20, longitude: 0)
+    @AppStorage("defaultMapStyle") private var rawMapStyle: String = MapStyle.monochrome.rawValue
+    @AppStorage("mapShowLabels") private var mapShowLabels: Bool = true
+
+    private var currentMapStyle: MapStyle {
+        MapStyle(rawValue: rawMapStyle) ?? .monochrome
+    }
+
+    // Fallback origin when the user denies (or hasn't yet granted) location:
+    // São Paulo. Keeps the Home meaningful instead of dropping into mid-Atlantic.
+    private static let fallbackCenter = CLLocationCoordinate2D(
+        latitude: Station.defaultOrigin.lat,
+        longitude: Station.defaultOrigin.lon
+    )
 
     private var streak: Int {
         StreakCalculator.currentStreak(from: journeys)
     }
 
-    private var routes: [JourneyRoute] {
-        journeys.map {
-            JourneyRoute(
-                id: $0.code,
-                from: CLLocationCoordinate2D(latitude: $0.fromLat, longitude: $0.fromLon),
-                to: CLLocationCoordinate2D(latitude: $0.toLat, longitude: $0.toLon)
-            )
-        }
-    }
-
     private var cityDisplay: String {
+        if let manual = homeCityStore.manualCity { return manual.name }
         if let city = resolver.cityName, !city.isEmpty { return city }
         return NSLocalizedString("home.greeting.fallbackName", comment: "")
     }
 
     private var globeCenter: CLLocationCoordinate2D {
-        resolver.coordinate ?? Self.fallbackCenter
+        if let manual = homeCityStore.manualCity { return manual.coordinate }
+        return resolver.coordinate ?? Self.fallbackCenter
+    }
+
+    private var locationBannerVisible: Bool {
+        resolver.status == .denied && homeCityStore.manualCity == nil
     }
 
     var body: some View {
         ZStack {
             FT.Palette.black.ignoresSafeArea()
 
-            GlobeHomeView(center: globeCenter, routes: routes)
-                .ignoresSafeArea()
-                .opacity(0.85)
+            ZStack {
+                GlobeHomeView(center: globeCenter,
+                              style: currentMapStyle,
+                              showLabels: mapShowLabels)
+                if currentMapStyle == .monochrome {
+                    Color(white: 0.5)
+                        .blendMode(.saturation)
+                        .allowsHitTesting(false)
+                }
+            }
+            .compositingGroup()
+            .ignoresSafeArea()
+            .opacity(0.85)
 
             StarsBackground()
                 .blendMode(.screen)
@@ -81,6 +98,13 @@ struct HomeView: View {
                     .padding(.top, 8)
                     .opacity(appeared ? 1 : 0)
                     .offset(y: appeared ? 0 : -12)
+
+                if locationBannerVisible {
+                    locationBanner
+                        .padding(.horizontal, FT.Layout.sideMargin)
+                        .padding(.top, 14)
+                        .opacity(appeared ? 1 : 0)
+                }
 
                 Spacer(minLength: 0)
 
@@ -125,6 +149,36 @@ struct HomeView: View {
                 PremiumDiscountPill()
             }
         }
+    }
+
+    private var locationBanner: some View {
+        Button(action: onSettings) {
+            HStack(spacing: 10) {
+                Image(systemName: "location.slash.fill")
+                    .font(.system(size: 13, weight: .semibold))
+                    .foregroundStyle(FT.Palette.textSecondary)
+                Text("home.location.denied.banner")
+                    .font(FT.Typography.caption)
+                    .foregroundStyle(FT.Palette.textSecondary)
+                    .multilineTextAlignment(.leading)
+                Spacer(minLength: 8)
+                Image(systemName: "chevron.right")
+                    .font(.system(size: 12, weight: .semibold))
+                    .foregroundStyle(FT.Palette.textMuted)
+            }
+            .padding(.horizontal, 12)
+            .padding(.vertical, 10)
+            .background(
+                RoundedRectangle(cornerRadius: 12, style: .continuous)
+                    .fill(.clear)
+                    .ftGlassRounded(cornerRadius: 12, interactive: true)
+            )
+            .overlay(
+                RoundedRectangle(cornerRadius: 12, style: .continuous)
+                    .stroke(FT.Palette.white.opacity(0.08), lineWidth: 1)
+            )
+        }
+        .buttonStyle(.plain)
     }
 
     // MARK: - Bottom

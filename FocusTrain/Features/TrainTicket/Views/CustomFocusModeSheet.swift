@@ -94,7 +94,8 @@ struct CustomFocusModeSheet: View {
                 .foregroundStyle(FT.Palette.textPrimary)
                 .background(
                     RoundedRectangle(cornerRadius: 14, style: .continuous)
-                        .fill(FT.Palette.bgElevated)
+                        .fill(.clear)
+                        .ftGlassRounded(cornerRadius: 14)
                 )
                 .overlay(
                     RoundedRectangle(cornerRadius: 14, style: .continuous)
@@ -106,9 +107,11 @@ struct CustomFocusModeSheet: View {
     private var symbolSection: some View {
         VStack(alignment: .leading, spacing: 10) {
             sectionHeader(LocalizedStringKey("focusMode.custom.icon"))
-            LazyVGrid(columns: Array(repeating: GridItem(.flexible(), spacing: 12), count: 4), spacing: 12) {
-                ForEach(Self.symbolChoices, id: \.self) { symbol in
-                    symbolCell(symbol)
+            FTGlassContainer {
+                LazyVGrid(columns: Array(repeating: GridItem(.flexible(), spacing: 12), count: 4), spacing: 12) {
+                    ForEach(Self.symbolChoices, id: \.self) { symbol in
+                        symbolCell(symbol)
+                    }
                 }
             }
         }
@@ -127,17 +130,8 @@ struct CustomFocusModeSheet: View {
                 .foregroundStyle(isSelected ? FT.Palette.ink : FT.Palette.textPrimary)
                 .frame(maxWidth: .infinity)
                 .frame(height: 52)
-                .background(
-                    RoundedRectangle(cornerRadius: 14, style: .continuous)
-                        .fill(isSelected ? Color(hex: UInt32(selectedTintHex)) : FT.Palette.bgElevated)
-                )
-                .overlay(
-                    RoundedRectangle(cornerRadius: 14, style: .continuous)
-                        .stroke(
-                            isSelected ? FT.Palette.brandRail : FT.Palette.textMuted.opacity(0.25),
-                            lineWidth: isSelected ? 2 : 1
-                        )
-                )
+                .ftGlass(.rounded(14), interactive: true, tint: isSelected ? Color(hex: UInt32(selectedTintHex)) : nil)
+                .ftGlassSelectionStroke(isSelected: isSelected, shape: .rounded(14))
         }
         .buttonStyle(.plain)
     }
@@ -145,11 +139,13 @@ struct CustomFocusModeSheet: View {
     private var colorSection: some View {
         VStack(alignment: .leading, spacing: 10) {
             sectionHeader(LocalizedStringKey("focusMode.custom.color"))
-            HStack(spacing: 12) {
-                ForEach(Self.colorChoices, id: \.self) { hex in
-                    colorSwatch(hex)
+            FTGlassContainer {
+                HStack(spacing: 12) {
+                    ForEach(Self.colorChoices, id: \.self) { hex in
+                        colorSwatch(hex)
+                    }
+                    Spacer(minLength: 0)
                 }
-                Spacer(minLength: 0)
             }
         }
     }
@@ -163,12 +159,10 @@ struct CustomFocusModeSheet: View {
             }
         } label: {
             Circle()
-                .fill(Color(hex: UInt32(hex)))
+                .fill(.clear)
+                .ftGlass(.circle, interactive: true, tint: Color(hex: UInt32(hex)))
                 .frame(width: 38, height: 38)
-                .overlay(
-                    Circle()
-                        .stroke(FT.Palette.brandRail, lineWidth: isSelected ? 3 : 0)
-                )
+                .ftGlassSelectionStroke(isSelected: isSelected, shape: .circle)
                 .scaleEffect(isSelected ? 1.08 : 1.0)
         }
         .buttonStyle(.plain)
@@ -188,7 +182,9 @@ struct CustomFocusModeSheet: View {
             .padding(.horizontal, 16)
             .padding(.vertical, 12)
             .background(
-                Capsule().fill(Color(hex: UInt32(selectedTintHex)))
+                Capsule()
+                    .fill(.clear)
+                    .ftGlassCapsule(tint: Color(hex: UInt32(selectedTintHex)))
             )
         }
     }

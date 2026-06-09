@@ -108,14 +108,11 @@ struct HistoryView: View {
 
     private var header: some View {
         HStack(alignment: .center) {
-            Button(action: { showMap = true }) {
-                Image(systemName: "map.fill")
-                    .font(.system(size: 16, weight: .bold))
-                    .foregroundStyle(FT.Palette.brandRail)
-                    .frame(width: 40, height: 40)
-                    .background(Circle().fill(FT.Palette.bgElevated.opacity(0.6)))
-            }
-            .buttonStyle(.plain)
+            FTGlassIconButton(
+                systemName: "map.fill",
+                foreground: FT.Palette.brandRail,
+                accessibilityLabel: "history.map.a11y"
+            ) { showMap = true }
 
             Spacer()
 
@@ -128,14 +125,11 @@ struct HistoryView: View {
 
             Spacer()
 
-            Button(action: onClose) {
-                Image(systemName: "xmark")
-                    .font(.system(size: 14, weight: .bold))
-                    .foregroundStyle(FT.Palette.white)
-                    .frame(width: 40, height: 40)
-                    .background(Circle().fill(FT.Palette.bgElevated.opacity(0.6)))
-            }
-            .buttonStyle(.plain)
+            FTGlassIconButton(
+                systemName: "xmark",
+                accessibilityLabel: "common.close",
+                action: onClose
+            )
         }
     }
 
@@ -157,48 +151,54 @@ struct HistoryView: View {
         VStack(alignment: .leading, spacing: 10) {
             sectionLabel("history.filter.status")
             ScrollView(.horizontal, showsIndicators: false) {
-                HStack(spacing: 8) {
-                    ForEach(StatusFilter.allCases) { option in
-                        FilterChip(
-                            label: NSLocalizedString(option.labelKey, comment: ""),
-                            isSelected: statusFilter == option
-                        ) { statusFilter = option }
+                FTGlassContainer {
+                    HStack(spacing: 8) {
+                        ForEach(StatusFilter.allCases) { option in
+                            FilterChip(
+                                label: NSLocalizedString(option.labelKey, comment: ""),
+                                isSelected: statusFilter == option
+                            ) { statusFilter = option }
+                        }
                     }
+                    .padding(.horizontal, FT.Layout.sideMargin)
                 }
-                .padding(.horizontal, FT.Layout.sideMargin)
             }
 
             sectionLabel("history.filter.scenario")
             ScrollView(.horizontal, showsIndicators: false) {
-                HStack(spacing: 8) {
-                    FilterChip(
-                        label: NSLocalizedString("history.filter.all", comment: ""),
-                        isSelected: scenarioFilter == nil
-                    ) { scenarioFilter = nil }
-
-                    ForEach(FocusScenario.allCases) { scenario in
+                FTGlassContainer {
+                    HStack(spacing: 8) {
                         FilterChip(
-                            label: NSLocalizedString(scenario.displayKey, comment: ""),
-                            systemImage: scenario.symbol,
-                            tint: scenario.tint,
-                            isSelected: scenarioFilter == scenario
-                        ) { scenarioFilter = scenario }
+                            label: NSLocalizedString("history.filter.all", comment: ""),
+                            isSelected: scenarioFilter == nil
+                        ) { scenarioFilter = nil }
+
+                        ForEach(FocusScenario.allCases) { scenario in
+                            FilterChip(
+                                label: NSLocalizedString(scenario.displayKey, comment: ""),
+                                systemImage: scenario.symbol,
+                                tint: scenario.tint,
+                                isSelected: scenarioFilter == scenario
+                            ) { scenarioFilter = scenario }
+                        }
                     }
+                    .padding(.horizontal, FT.Layout.sideMargin)
                 }
-                .padding(.horizontal, FT.Layout.sideMargin)
             }
 
             sectionLabel("history.filter.sort")
             ScrollView(.horizontal, showsIndicators: false) {
-                HStack(spacing: 8) {
-                    ForEach(SortOrder.allCases) { option in
-                        FilterChip(
-                            label: NSLocalizedString(option.labelKey, comment: ""),
-                            isSelected: sortOrder == option
-                        ) { sortOrder = option }
+                FTGlassContainer {
+                    HStack(spacing: 8) {
+                        ForEach(SortOrder.allCases) { option in
+                            FilterChip(
+                                label: NSLocalizedString(option.labelKey, comment: ""),
+                                isSelected: sortOrder == option
+                            ) { sortOrder = option }
+                        }
                     }
+                    .padding(.horizontal, FT.Layout.sideMargin)
                 }
-                .padding(.horizontal, FT.Layout.sideMargin)
             }
         }
     }
@@ -273,7 +273,14 @@ private struct FilterChip: View {
     let action: () -> Void
 
     var body: some View {
-        Button(action: action) {
+        FTGlassChip(
+            isSelected: isSelected,
+            tint: FT.Palette.white.opacity(0.75),
+            idleForeground: FT.Palette.textSecondary,
+            selectedForeground: FT.Palette.black,
+            haptic: nil,
+            action: action
+        ) {
             HStack(spacing: 6) {
                 if let systemImage {
                     Image(systemName: systemImage)
@@ -282,22 +289,9 @@ private struct FilterChip: View {
                 }
                 Text(label)
                     .font(FT.Typography.caption.weight(.semibold))
-                    .foregroundStyle(isSelected ? FT.Palette.black : FT.Palette.textSecondary)
             }
             .padding(.horizontal, 12)
             .padding(.vertical, 8)
-            .background(
-                Capsule(style: .continuous)
-                    .fill(isSelected ? FT.Palette.white : FT.Palette.bgElevated.opacity(0.55))
-            )
-            .overlay(
-                Capsule(style: .continuous)
-                    .strokeBorder(
-                        isSelected ? Color.clear : FT.Palette.white.opacity(0.08),
-                        lineWidth: 1
-                    )
-            )
         }
-        .buttonStyle(.plain)
     }
 }

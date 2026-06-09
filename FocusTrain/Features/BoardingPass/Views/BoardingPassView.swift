@@ -136,19 +136,12 @@ struct BoardingPassView: View {
     }
 
     private var checkInButton: some View {
-        Button(action: confirm) {
-            HStack(spacing: 8) {
-                Text("Check in")
-                    .font(FT.Typography.button)
-                Image(systemName: "arrow.right")
-                    .font(.system(size: 15, weight: .bold))
-            }
-            .foregroundStyle(FT.Palette.black)
-            .frame(maxWidth: .infinity)
-            .frame(height: 52)
-            .background(Capsule().fill(FT.Palette.brandRail))
-        }
-        .buttonStyle(.plain)
+        CTAButton(
+            title: "Check in",
+            style: .primary,
+            icon: "arrow.right",
+            action: confirm
+        )
         .accessibilityHint(Text("Confirma o embarque e inicia a sessão de foco"))
     }
 
@@ -156,16 +149,15 @@ struct BoardingPassView: View {
         VStack {
             HStack {
                 Spacer()
-                Button {
+                FTGlassIconButton(
+                    systemName: "xmark",
+                    size: 36,
+                    iconSize: 14,
+                    foreground: FT.Palette.white.opacity(0.7),
+                    accessibilityLabel: "Cancelar"
+                ) {
                     onCancel()
-                } label: {
-                    Image(systemName: "xmark")
-                        .font(.system(size: 14, weight: .bold))
-                        .foregroundStyle(FT.Palette.white.opacity(0.7))
-                        .frame(width: 36, height: 36)
-                        .background(Circle().fill(Color.white.opacity(0.08)))
                 }
-                .buttonStyle(.plain)
                 .padding(.trailing, FT.Layout.sideMargin)
                 .padding(.top, 12)
             }

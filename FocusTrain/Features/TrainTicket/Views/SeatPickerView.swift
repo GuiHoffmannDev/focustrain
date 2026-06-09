@@ -61,11 +61,14 @@ struct SeatPickerView: View {
         .navigationBarBackButtonHidden(true)
         .toolbar {
             ToolbarItem(placement: .topBarLeading) {
+                // Plain button: the iOS 26 toolbar supplies the Liquid Glass
+                // chrome; a custom background here would double it.
                 Button(action: onBack) {
                     Image(systemName: "chevron.left")
-                        .font(.system(size: 17, weight: .semibold))
+                        .font(.system(size: 17, weight: .bold))
                         .foregroundStyle(FT.Palette.white)
                 }
+                .accessibilityLabel(Text("common.back"))
             }
         }
         .fullScreenCover(item: $pendingBoardingPass) { ticket in

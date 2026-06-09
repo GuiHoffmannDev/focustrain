@@ -16,9 +16,12 @@ struct AmbientSoundCard: View {
                 content
             }
             .aspectRatio(1, contentMode: .fit)
+            .contentShape(RoundedRectangle(cornerRadius: 20, style: .continuous))
         }
         .buttonStyle(.plain)
         .opacity(isEnabled ? 1 : 0.5)
+        .allowsHitTesting(isEnabled)
+        .animation(.spring(response: 0.4, dampingFraction: 0.82), value: isOn)
         .accessibilityLabel(Text(LocalizedStringKey(sound.displayKey)))
         .accessibilityValue(isOn ? "on" : "off")
         .accessibilityHint(Text(isOn ? "Double tap to turn off" : "Double tap to select"))
@@ -29,18 +32,21 @@ struct AmbientSoundCard: View {
     private var background: some View {
         if isOn {
             RoundedRectangle(cornerRadius: 20, style: .continuous)
-                .fill(
+                .fill(.clear)
+                .ftGlassRounded(cornerRadius: 20, interactive: true, tint: sound.tint.opacity(0.45))
+                .overlay(
                     LinearGradient(
-                        colors: sound.gradient,
+                        colors: sound.gradient.map { $0.opacity(0.35) },
                         startPoint: .topLeading,
                         endPoint: .bottomTrailing
                     )
+                    .clipShape(RoundedRectangle(cornerRadius: 20, style: .continuous))
                 )
                 .overlay { glyph(opacity: 0.18) }
         } else {
             RoundedRectangle(cornerRadius: 20, style: .continuous)
                 .fill(.clear)
-                .glassEffect(.regular, in: RoundedRectangle(cornerRadius: 20, style: .continuous))
+                .ftGlassRounded(cornerRadius: 20, interactive: true)
                 .overlay { glyph(opacity: 0.12) }
         }
     }
@@ -84,7 +90,7 @@ struct ComingSoonCard: View {
         ZStack {
             RoundedRectangle(cornerRadius: 20, style: .continuous)
                 .fill(.clear)
-                .glassEffect(.regular, in: RoundedRectangle(cornerRadius: 20, style: .continuous))
+                .ftGlassRounded(cornerRadius: 20)
                 .overlay {
                     Image(systemName: "door.left.hand.closed")
                         .font(.system(size: 90, weight: .semibold))
@@ -123,7 +129,7 @@ struct ComingSoonCard: View {
 #Preview("Cards") {
     VStack(spacing: 16) {
         HStack(spacing: 12) {
-            AmbientSoundCard(sound: .airplane, isOn: true, isEnabled: true, onTap: {})
+            AmbientSoundCard(sound: .train, isOn: true, isEnabled: true, onTap: {})
             AmbientSoundCard(sound: .raindrop, isOn: false, isEnabled: true, onTap: {})
         }
         HStack(spacing: 12) {

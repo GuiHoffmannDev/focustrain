@@ -70,6 +70,12 @@ final class SessionViewModel {
         return String(format: "%02d:%02d", total / 60, total % 60)
     }
 
+    /// "MM:SS" of focus time accrued so far (pauses excluded).
+    var elapsedText: String {
+        let total = Int(elapsed.rounded())
+        return String(format: "%02d:%02d", total / 60, total % 60)
+    }
+
     /// Bottom-tile copy: "N min" for ≥1 minute, "<1 min" otherwise.
     /// Always uses minutes — no MM:SS — because the tile is small.
     var remainingMinutesText: String {

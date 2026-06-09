@@ -18,9 +18,6 @@ struct StarsBackground: View {
 
     var body: some View {
         Canvas { context, size in
-            if stars.isEmpty {
-                stars = Star.generate(count: count, in: size)
-            }
             for star in stars {
                 let cx = star.x * size.width + motion.dx * parallaxStrength * star.depth
                 let cy = star.y * size.height + motion.dy * parallaxStrength * star.depth
@@ -33,7 +30,12 @@ struct StarsBackground: View {
             }
         }
         .ignoresSafeArea()
-        .onAppear { startMotion() }
+        .onAppear {
+            if stars.isEmpty {
+                stars = Star.generate(count: count)
+            }
+            startMotion()
+        }
         .onDisappear { stopMotion() }
     }
 
@@ -70,7 +72,7 @@ struct StarsBackground: View {
         let opacity: Double
         let depth: CGFloat   // 0...1 — bigger = closer = more parallax
 
-        static func generate(count: Int, in size: CGSize) -> [Star] {
+        static func generate(count: Int) -> [Star] {
             var rng = SeededRNG(seed: 0xF0C57A1B)
             return (0..<count).map { _ in
                 Star(

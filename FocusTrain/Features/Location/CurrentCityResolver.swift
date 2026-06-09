@@ -12,10 +12,10 @@ final class CurrentCityResolver: NSObject, CLLocationManagerDelegate {
     enum Status { case idle, requesting, resolved, denied, failed }
 
     private let manager = CLLocationManager()
-    private let geocoder = CLGeocoder()
     private var pendingResolve = false
 
     var cityName: String?
+    var countryCode: String?
     var coordinate: CLLocationCoordinate2D?
     var status: Status = .idle
 
@@ -82,10 +82,15 @@ final class CurrentCityResolver: NSObject, CLLocationManagerDelegate {
     }
 
     private func reverseGeocode(_ location: CLLocation) async {
+        // CLGeocoder gives us both `locality` and `isoCountryCode` in one hop —
+        // the newer `MKReverseGeocodingRequest` exposes a localised city name
+        // but no ISO country code, which we need to look up the user's continent.
+        let geocoder = CLGeocoder()
         do {
             let placemarks = try await geocoder.reverseGeocodeLocation(location)
             if let p = placemarks.first {
-                cityName = p.locality ?? p.subAdministrativeArea ?? p.administrativeArea ?? p.country
+                cityName = p.locality ?? p.subAdministrativeArea ?? p.administrativeArea
+                countryCode = p.isoCountryCode
                 status = .resolved
             } else {
                 status = .failed

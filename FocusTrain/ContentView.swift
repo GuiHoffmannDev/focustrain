@@ -122,17 +122,11 @@ private struct ComingSoonSheet: View {
                     .foregroundStyle(FT.Palette.textMuted)
                     .padding(.top, 4)
                 Spacer()
-                Button(action: onClose) {
-                    Text(NSLocalizedString("common.close", comment: ""))
-                        .font(FT.Typography.body.weight(.semibold))
-                        .foregroundStyle(FT.Palette.white)
-                        .frame(maxWidth: .infinity, minHeight: 50)
-                        .background(
-                            RoundedRectangle(cornerRadius: 14, style: .continuous)
-                                .fill(FT.Palette.bgElevated.opacity(0.6))
-                        )
-                }
-                .buttonStyle(.plain)
+                CTAButton(
+                    title: NSLocalizedString("common.close", comment: ""),
+                    style: .secondary,
+                    action: onClose
+                )
                 .padding(.horizontal, FT.Layout.sideMargin)
                 .padding(.bottom, 24)
             }

@@ -35,9 +35,11 @@ struct MapStyleSelector: View {
 
     var body: some View {
         VStack(spacing: 16) {
-            LazyVGrid(columns: columns, spacing: 12) {
-                ForEach(MapStyle.allCases) { style in
-                    tile(for: style)
+            FTGlassContainer {
+                LazyVGrid(columns: columns, spacing: 12) {
+                    ForEach(MapStyle.allCases) { style in
+                        tile(for: style)
+                    }
                 }
             }
             labelsToggle
@@ -72,14 +74,9 @@ struct MapStyleSelector: View {
             }
             .padding(12)
             .frame(maxWidth: .infinity, alignment: .leading)
-            .background(
-                RoundedRectangle(cornerRadius: 18)
-                    .fill(FT.Palette.bgElevated)
-            )
-            .overlay(
-                RoundedRectangle(cornerRadius: 18)
-                    .stroke(isSelected ? FT.Palette.brandRail : Color.clear, lineWidth: 2.5)
-            )
+            .background(EmptyView())
+            .ftGlass(.rounded(18), interactive: true, tint: isSelected ? FT.Palette.brandRail.opacity(0.28) : nil)
+            .ftGlassSelectionStroke(isSelected: isSelected, shape: .rounded(18))
         }
         .buttonStyle(.plain)
     }
@@ -98,7 +95,8 @@ struct MapStyleSelector: View {
         .padding(.vertical, 12)
         .background(
             RoundedRectangle(cornerRadius: 18)
-                .fill(FT.Palette.bgElevated)
+                .fill(.clear)
+                .ftGlassRounded(cornerRadius: 18)
         )
     }
 }

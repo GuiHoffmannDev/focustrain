@@ -8,6 +8,7 @@ import CoreHaptics
 protocol DetentHapticsService: AnyObject {
     func prepare()
     func tick()
+    func fineTick()
 }
 
 enum DetentHaptics {
@@ -27,6 +28,7 @@ enum DetentHaptics {
 final class NoopDetentService: DetentHapticsService {
     func prepare() {}
     func tick() {}
+    func fineTick() {}
 }
 
 #if os(iOS)
@@ -47,11 +49,19 @@ final class CoreHapticsDetentService: DetentHapticsService {
     }
 
     func tick() {
+        play(intensity: 0.7, sharpness: 0.9)
+    }
+
+    func fineTick() {
+        play(intensity: 0.25, sharpness: 0.6)
+    }
+
+    private func play(intensity: Float, sharpness: Float) {
         guard let engine else { return }
         do {
             let event = CHHapticEvent(eventType: .hapticTransient, parameters: [
-                CHHapticEventParameter(parameterID: .hapticIntensity, value: 0.7),
-                CHHapticEventParameter(parameterID: .hapticSharpness, value: 0.9)
+                CHHapticEventParameter(parameterID: .hapticIntensity, value: intensity),
+                CHHapticEventParameter(parameterID: .hapticSharpness, value: sharpness)
             ], relativeTime: 0)
             let pattern = try CHHapticPattern(events: [event], parameters: [])
             let player = try engine.makePlayer(with: pattern)
@@ -63,7 +73,9 @@ final class CoreHapticsDetentService: DetentHapticsService {
 /// Fallback for devices without Core Haptics.
 final class ImpactDetentService: DetentHapticsService {
     private let gen = UIImpactFeedbackGenerator(style: .rigid)
-    func prepare() { gen.prepare() }
+    private let fineGen = UIImpactFeedbackGenerator(style: .light)
+    func prepare() { gen.prepare(); fineGen.prepare() }
     func tick() { gen.impactOccurred(intensity: 0.85); gen.prepare() }
+    func fineTick() { fineGen.impactOccurred(intensity: 0.35); fineGen.prepare() }
 }
 #endif

@@ -30,31 +30,27 @@ struct FocusModeChips: View {
     // MARK: - Default chip
 
     private func defaultChip(_ mode: FocusMode) -> some View {
-        let isSelected = selectedDefault == mode
-        return Button {
-            tap {
-                selectedDefault = mode
-                selectedCustomID = nil
-            }
-        } label: {
-            chipLabel(symbol: mode.symbol, text: LocalizedStringKey(mode.displayKey), tint: mode.tint, isSelected: isSelected)
+        FTGlassChip(
+            isSelected: selectedDefault == mode,
+            tint: mode.tint,
+            selectedScale: 1.03,
+            action: { selectedDefault = mode; selectedCustomID = nil }
+        ) {
+            chipContent(symbol: mode.symbol, text: LocalizedStringKey(mode.displayKey))
         }
-        .buttonStyle(.plain)
     }
 
     // MARK: - Custom chip
 
     private func customChip(_ mode: CustomFocusMode) -> some View {
-        let isSelected = selectedCustomID == mode.id
-        return Button {
-            tap {
-                selectedCustomID = mode.id
-                selectedDefault = nil
-            }
-        } label: {
-            chipLabel(symbol: mode.symbol, text: LocalizedStringKey(mode.name), tint: mode.tint, isSelected: isSelected)
+        FTGlassChip(
+            isSelected: selectedCustomID == mode.id,
+            tint: mode.tint,
+            selectedScale: 1.03,
+            action: { selectedCustomID = mode.id; selectedDefault = nil }
+        ) {
+            chipContent(symbol: mode.symbol, text: LocalizedStringKey(mode.name))
         }
-        .buttonStyle(.plain)
         .contextMenu {
             Button(role: .destructive) {
                 onDeleteCustom(mode)
@@ -79,7 +75,9 @@ struct FocusModeChips: View {
             .padding(.horizontal, 18)
             .padding(.vertical, 12)
             .background(
-                Capsule().fill(FT.Palette.bgElevated.opacity(0.6))
+                Capsule()
+                    .fill(.clear)
+                    .ftGlassCapsule(interactive: true)
             )
             .overlay(
                 Capsule().stroke(FT.Palette.textMuted.opacity(0.35), lineWidth: 1)
@@ -91,33 +89,12 @@ struct FocusModeChips: View {
 
     // MARK: - Label
 
-    private func chipLabel(symbol: String, text: LocalizedStringKey, tint: Color, isSelected: Bool) -> some View {
+    private func chipContent(symbol: String, text: LocalizedStringKey) -> some View {
         HStack(spacing: 8) {
-            Image(systemName: symbol)
-                .font(.system(size: 14, weight: .semibold))
-            Text(text)
-                .font(.system(size: 14, weight: .semibold))
-                .lineLimit(1)
+            Image(systemName: symbol).font(.system(size: 14, weight: .semibold))
+            Text(text).font(.system(size: 14, weight: .semibold)).lineLimit(1)
         }
-        .foregroundStyle(FT.Palette.ink)
         .padding(.horizontal, 16)
         .padding(.vertical, 12)
-        .background(
-            Capsule().fill(tint)
-        )
-        .overlay(
-            Capsule().stroke(
-                isSelected ? FT.Palette.brandRail : Color.clear,
-                lineWidth: 3
-            )
-        )
-        .scaleEffect(isSelected ? 1.04 : 1.0)
-    }
-
-    private func tap(_ apply: () -> Void) {
-        UIImpactFeedbackGenerator(style: .medium).impactOccurred()
-        withAnimation(.spring(response: 0.35, dampingFraction: 0.8)) {
-            apply()
-        }
     }
 }

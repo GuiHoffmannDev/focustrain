@@ -44,6 +44,19 @@ enum GreatCircle {
         return (θ.toDegrees + 360).truncatingRemainder(dividingBy: 360)
     }
 
+    /// Great-circle distance in kilometres between two coordinates (haversine).
+    /// Allocation-free replacement for `CLLocation.distance(from:)` — used by the
+    /// destination ladder and `CityDatabase` to refine the R-tree bounding box.
+    static func distanceKm(
+        _ a: CLLocationCoordinate2D,
+        _ b: CLLocationCoordinate2D
+    ) -> Double {
+        earthRadiusKm * angularDistance(a, b)
+    }
+
+    /// Mean Earth radius (km) — IUGG, matches `CLLocation`'s sphere closely.
+    static let earthRadiusKm = 6371.0088
+
     /// Angular distance (radians) between two coordinates via the haversine.
     private static func angularDistance(
         _ a: CLLocationCoordinate2D,

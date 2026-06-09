@@ -10,13 +10,9 @@ struct CTAButton: View {
     var isLoading: Bool = false
     let action: () -> Void
 
-    @State private var pressed = false
-
     var body: some View {
         Button(action: {
             guard !isLoading else { return }
-            let gen = UIImpactFeedbackGenerator(style: .medium)
-            gen.impactOccurred()
             action()
         }) {
             ZStack {
@@ -35,22 +31,15 @@ struct CTAButton: View {
             .foregroundStyle(foreground)
             .frame(maxWidth: .infinity)
             .frame(height: FT.Layout.ctaHeight)
-            .background(background)
-            .clipShape(Capsule())
-            .overlay(
-                Capsule().stroke(borderColor, lineWidth: style == .ghost ? 1 : 0)
-            )
-            .scaleEffect(pressed && !isLoading ? 0.97 : 1.0)
-            .animation(.spring(response: 0.25, dampingFraction: 0.7), value: pressed)
+            .overlay {
+                if style == .ghost {
+                    Capsule().stroke(FT.Palette.textMuted.opacity(0.32), lineWidth: 1)
+                }
+            }
             .animation(.easeInOut(duration: 0.2), value: isLoading)
         }
-        .buttonStyle(.plain)
+        .buttonStyle(FTGlassButtonStyle(shape: .capsule, tint: style == .primary ? FT.Palette.brandRail : nil))
         .disabled(isLoading)
-        .simultaneousGesture(
-            DragGesture(minimumDistance: 0)
-                .onChanged { _ in pressed = true }
-                .onEnded { _ in pressed = false }
-        )
     }
 
     private var foreground: Color {
@@ -60,14 +49,43 @@ struct CTAButton: View {
         case .ghost:     return FT.Palette.white
         }
     }
-    private var background: Color {
-        switch style {
-        case .primary:   return FT.Palette.brandRail
-        case .secondary: return FT.Palette.bgElevated
-        case .ghost:     return Color.clear
+}
+
+struct FTGlassIconButton: View {
+    let systemName: String
+    var size: CGFloat = 40
+    var iconSize: CGFloat = 14
+    var foreground: Color = FT.Palette.white
+    var tint: Color? = nil
+    var accessibilityLabel: LocalizedStringKey? = nil
+    let action: () -> Void
+
+    var body: some View {
+        Button(action: action) {
+            Image(systemName: systemName)
+                .font(.system(size: iconSize, weight: .bold))
+                .foregroundStyle(foreground)
+                .frame(width: size, height: size)
+                .background {
+                    Circle()
+                        .fill(.clear)
+                        .ftGlassCircle(interactive: true, tint: tint, liquid: true)
+                }
+                .contentShape(Circle())
         }
+        .buttonStyle(.plain)
+        .accessibilityLabel(accessibilityLabel.map { Text($0) } ?? Text(systemName))
     }
-    private var borderColor: Color {
-        style == .ghost ? FT.Palette.textMuted.opacity(0.4) : .clear
+}
+
+extension View {
+    func ftGlassCapsule(interactive: Bool = false, tint: Color? = nil, liquid: Bool = false) -> some View {
+        ftGlass(.capsule, interactive: interactive, tint: tint, liquid: liquid)
+    }
+    func ftGlassCircle(interactive: Bool = false, tint: Color? = nil, liquid: Bool = false) -> some View {
+        ftGlass(.circle, interactive: interactive, tint: tint, liquid: liquid)
+    }
+    func ftGlassRounded(cornerRadius: CGFloat, interactive: Bool = false, tint: Color? = nil, liquid: Bool = false) -> some View {
+        ftGlass(.rounded(cornerRadius), interactive: interactive, tint: tint, liquid: liquid)
     }
 }

@@ -9,9 +9,14 @@ struct SessionControlPill<Content: View>: View {
         VStack(spacing: 6) {
             content()
         }
+        .environment(\.sessionControlGrouped, true)
         .padding(.vertical, 6)
         .padding(.horizontal, 6)
-        .glassEffect(.regular, in: Capsule())
+        .background {
+            Capsule()
+                .fill(.clear)
+                .ftGlassCapsule(liquid: true)
+        }
     }
 }
 

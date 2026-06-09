@@ -1,13 +1,14 @@
+import CoreLocation
 import SwiftUI
 
 /// One stop on the duration ladder. Picking a destination sets both the route's
-/// destination and the focus duration. `nominalKm` is a *stylized* distance that
-/// grows with `minutes` (shown on cards/radar) — not a real great-circle value.
+/// destination and the focus duration. `nominalKm` is the great-circle distance
+/// from origin (km), shown on cards/radar. `radarDegrees` is the bearing from
+/// origin used to position the pin on the radar ring (0 = north, clockwise).
 struct Destination: Identifiable, Hashable {
     let station: Station
     let minutes: Int
     let nominalKm: Int
-    /// Curated angle on the radar ring (degrees, 0 = right, clockwise). Not a geographic bearing.
     let radarDegrees: Double
 
     var id: String { station.code }
@@ -16,39 +17,81 @@ struct Destination: Identifiable, Hashable {
 }
 
 extension Destination {
-    /// Fixed 9-stop ladder (15–90 min). All codes exist in `StationPool`.
-    static let ladder: [Destination] = {
-        let rows: [(code: String, minutes: Int, km: Int)] = [
-            ("LIS", 15,  250), ("MAD", 20,  400), ("PAR", 25,  600),
-            ("ROM", 30,  850), ("IST", 40, 1300), ("DXB", 50, 2000),
-            ("DEL", 60, 3000), ("BKK", 75, 4500), ("TYO", 90, 6500),
-        ]
-        let n = rows.count
-        let start = 130.0, sweep = 280.0   // spread across a 280° arc, gap at bottom
-        return rows.enumerated().map { idx, r in
-            guard let station = StationPool.station(forCode: r.code) else {
-                fatalError("Destination ladder references unknown station code \(r.code)")
-            }
-            let deg = start + sweep * Double(idx) / Double(n - 1)
-            return Destination(station: station, minutes: r.minutes, nominalKm: r.km, radarDegrees: deg)
-        }
-    }()
-}
+    /// Compact duration label: minutes only under an hour ("45m"), hours +
+    /// minutes at or above ("1h 10m", "2h").
+    var durationLabel: String { Self.durationLabel(minutes: minutes) }
 
-#if DEBUG
-#Preview("Destination ladder self-check") {
-    let l = Destination.ladder
-    let countOK   = l.count == 9
-    let codesOK   = l.allSatisfy { StationPool.station(forCode: $0.code) != nil }
-    let minutesOK = zip(l, l.dropFirst()).allSatisfy { $0.minutes < $1.minutes }
-    let kmOK      = zip(l, l.dropFirst()).allSatisfy { $0.nominalKm < $1.nominalKm }
-    let pass = countOK && codesOK && minutesOK && kmOK
-    return VStack(alignment: .leading, spacing: 6) {
-        Text(pass ? "PASS ✓" : "FAIL ✗").font(.title.bold())
-            .foregroundStyle(pass ? .green : .red)
-        Text("count=\(l.count) codes=\(codesOK) minutesAsc=\(minutesOK) kmAsc=\(kmOK)")
-            .font(.caption.monospaced())
-        ForEach(l) { d in Text("\(d.minutes)m · \(d.code) \(d.city) · ~\(d.nominalKm)km · \(Int(d.radarDegrees))°").font(.caption2.monospaced()) }
-    }.padding()
+    static func durationLabel(minutes: Int) -> String {
+        let h = minutes / 60
+        let m = minutes % 60
+        if h == 0 { return "\(m)m" }
+        if m == 0 { return "\(h)h" }
+        return "\(h)h \(m)m"
+    }
+
+    /// 12-entry duration ladder, in minutes.
+    static let durationLadder: [Int] = [
+        15, 20, 25, 30, 40, 50, 60, 75, 90, 105, 120, 150,
+    ]
+
+    /// Fictional regional-rail cruise speed (km/h). One knob that controls how
+    /// dense or sparse the ladder feels: distance bucket per slot is
+    /// `(minutes / 60) * fictionalSpeedKmh`.
+    static let fictionalSpeedKmh: Double = 80
+
+    /// Builds the destination ladder by bucketing nearby `candidates` (from
+    /// `CityDatabase.nearby`) against a per-slot target distance. For each
+    /// duration in `durationLadder`:
+    ///
+    /// 1. `target = (minutes / 60) * fictionalSpeedKmh`
+    /// 2. Tries tolerance bands ±25%, ±50%, ±100% in order.
+    /// 3. Within the band, picks the unused city closest to `target`.
+    /// 4. If no candidate fits even at ±100%, the slot is omitted — the ladder
+    ///    may have fewer than 12 entries (UI degrades gracefully).
+    static func makeLadder(origin: Station, candidates: [City]) -> [Destination] {
+        guard !candidates.isEmpty else { return [] }
+
+        let originCoord = origin.coordinate
+        let scored: [(city: City, distanceKm: Double)] = candidates.map { city in
+            (city, GreatCircle.distanceKm(originCoord, city.coordinate))
+        }
+
+        var used: Set<Int> = []
+        var result: [Destination] = []
+        result.reserveCapacity(durationLadder.count)
+
+        for minutes in durationLadder {
+            let target = Double(minutes) / 60.0 * fictionalSpeedKmh
+            var picked: (city: City, distanceKm: Double)?
+            for tolerance in [0.25, 0.5, 1.0] {
+                let low = target * (1 - tolerance)
+                let high = target * (1 + tolerance)
+                var bestDelta = Double.greatestFiniteMagnitude
+                for candidate in scored {
+                    if used.contains(candidate.city.geonameId) { continue }
+                    if candidate.distanceKm < low || candidate.distanceKm > high { continue }
+                    let delta = abs(candidate.distanceKm - target)
+                    if delta < bestDelta {
+                        bestDelta = delta
+                        picked = candidate
+                    }
+                }
+                if picked != nil { break }
+            }
+            guard let (city, dist) = picked else { continue }
+            used.insert(city.geonameId)
+            let cityCoord = city.coordinate
+            let bearing = GreatCircle.bearing(from: originCoord, to: cityCoord)
+            let station = Station.make(city: city.name, coordinate: cityCoord)
+            result.append(
+                Destination(
+                    station: station,
+                    minutes: minutes,
+                    nominalKm: max(1, Int(dist.rounded())),
+                    radarDegrees: bearing
+                )
+            )
+        }
+        return result
+    }
 }
-#endif

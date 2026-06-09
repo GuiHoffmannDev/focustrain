@@ -2,10 +2,11 @@ import SwiftUI
 import Observation
 
 /// In-session source of truth for the ambient-sound UI. Persists the master
-/// switch and the chosen sound across launches via UserDefaults. Mute is
+/// switch and the chosen sound across launches via UserDefaults. Volume is
 /// session-ephemeral by design — a per-ride convenience, not a stored
-/// preference. Phase 3 ships UI + persistence only; Phase 4 will hang an
-/// AVAudioPlayer off `isPlaying` without touching the views.
+/// preference. `volume == 0` is the mute state. Phase 3 ships UI + persistence
+/// only; Phase 4 will hang an AVAudioPlayer off `isPlaying` without touching
+/// the views.
 @MainActor
 @Observable
 final class AmbientSoundController {
@@ -24,9 +25,9 @@ final class AmbientSoundController {
         }
     }
 
-    var isMuted: Bool = false
+    var volume: Double = 0.6
 
-    var isPlaying: Bool { isEnabled && !isMuted && selected != nil }
+    var isPlaying: Bool { isEnabled && volume > 0 && selected != nil }
 
     init() {
         let defaults = UserDefaults.standard

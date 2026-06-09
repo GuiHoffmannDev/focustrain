@@ -1,8 +1,8 @@
 import SwiftUI
 
 /// Compact pill that sits in the SoundSheet's header row and toggles the
-/// app's durable "Sound is allowed" preference. Active state is the
-/// success-green from the palette; inactive falls back to glass.
+/// app's durable "Sound is allowed" preference. Plain Liquid Glass in both
+/// states — on/off reads through the label text and foreground colour.
 struct SoundMasterPill: View {
     @Binding var isEnabled: Bool
 
@@ -26,11 +26,7 @@ struct SoundMasterPill: View {
             .padding(.horizontal, 14)
             .padding(.vertical, 8)
             .background {
-                if isEnabled {
-                    Capsule().fill(FT.Palette.success)
-                } else {
-                    Capsule().fill(.clear).glassEffect(.regular, in: Capsule())
-                }
+                Capsule().fill(.clear).ftGlassCapsule(interactive: true)
             }
         }
         .buttonStyle(.plain)

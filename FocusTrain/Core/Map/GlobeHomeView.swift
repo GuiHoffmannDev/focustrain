@@ -1,24 +1,21 @@
 import SwiftUI
 import MapKit
 
-/// The cinematic "globe" backdrop behind the Home hero.
-///
-/// Implementation note: MapKit doesn't expose a true orthographic globe
-/// projection, so we approximate the look with a very high-altitude
-/// `MKMapCamera` centred on the user's city. Dark imagery basemap, no chrome,
-/// no interaction — purely visual. Every completed `JourneyRoute` is drawn as
-/// a white geodesic polyline so the user sees where they've ridden.
+/// The Home backdrop: a regional map centred on the user's city. Nothing else —
+/// no station pins, no preview lines, no history overlays. The pulsing marker is
+/// a SwiftUI overlay (`PulsingPin`) composed on top in `HomeView`.
 struct GlobeHomeView: UIViewRepresentable {
     let center: CLLocationCoordinate2D
-    let routes: [JourneyRoute]
-    var altitude: CLLocationDistance = 8_000_000
+    var style: MapStyle = .satellite
+    var showLabels: Bool = false
 
     func makeCoordinator() -> Coordinator { Coordinator() }
 
     func makeUIView(context: Context) -> MKMapView {
         let map = MKMapView()
-        map.delegate = context.coordinator
-        map.preferredConfiguration = darkImagery()
+        map.preferredConfiguration = style.mapConfiguration(showLabels: showLabels)
+        context.coordinator.appliedStyle = style
+        context.coordinator.appliedShowLabels = showLabels
         map.isZoomEnabled = false
         map.isScrollEnabled = false
         map.isRotateEnabled = false
@@ -29,62 +26,46 @@ struct GlobeHomeView: UIViewRepresentable {
         map.pointOfInterestFilter = .excludingAll
         map.overrideUserInterfaceStyle = .dark
 
-        context.coordinator.apply(routes: routes, on: map)
-        applyCamera(map)
+        context.coordinator.applyCamera(to: map, center: center, animated: false)
+        context.coordinator.appliedCenter = center
         return map
     }
 
     func updateUIView(_ map: MKMapView, context: Context) {
         let coordinator = context.coordinator
-        if coordinator.appliedCenter == nil
+        if coordinator.appliedStyle != style || coordinator.appliedShowLabels != showLabels {
+            map.preferredConfiguration = style.mapConfiguration(showLabels: showLabels)
+            coordinator.appliedStyle = style
+            coordinator.appliedShowLabels = showLabels
+        }
+        let centerChanged = coordinator.appliedCenter == nil
             || coordinator.appliedCenter!.latitude != center.latitude
-            || coordinator.appliedCenter!.longitude != center.longitude {
-            applyCamera(map)
+            || coordinator.appliedCenter!.longitude != center.longitude
+        if centerChanged {
+            coordinator.applyCamera(to: map, center: center, animated: true)
+            coordinator.appliedCenter = center
         }
-        if coordinator.appliedIDs != routes.map(\.id) {
-            coordinator.apply(routes: routes, on: map)
-        }
-    }
-
-    private func applyCamera(_ map: MKMapView) {
-        let cam = MKMapCamera(lookingAtCenter: center,
-                              fromDistance: altitude,
-                              pitch: 0,
-                              heading: 0)
-        map.setCamera(cam, animated: false)
-    }
-
-    private func darkImagery() -> MKMapConfiguration {
-        let config = MKHybridMapConfiguration()
-        config.pointOfInterestFilter = .excludingAll
-        return config
     }
 
     // MARK: - Coordinator
 
-    final class Coordinator: NSObject, MKMapViewDelegate {
-        var appliedIDs: [String] = []
+    final class Coordinator {
         var appliedCenter: CLLocationCoordinate2D?
+        var appliedStyle: MapStyle?
+        var appliedShowLabels: Bool?
 
-        func apply(routes: [JourneyRoute], on map: MKMapView) {
-            map.removeOverlays(map.overlays)
-            for r in routes {
-                let line = MKGeodesicPolyline(coordinates: [r.from, r.to], count: 2)
-                map.addOverlay(line, level: .aboveLabels)
-            }
-            appliedIDs = routes.map(\.id)
-        }
-
-        func mapView(_ mapView: MKMapView, rendererFor overlay: MKOverlay) -> MKOverlayRenderer {
-            guard let line = overlay as? MKPolyline else {
-                return MKOverlayRenderer(overlay: overlay)
-            }
-            let r = MKPolylineRenderer(polyline: line)
-            r.strokeColor = UIColor.white.withAlphaComponent(0.85)
-            r.lineWidth = 2
-            r.lineCap = .round
-            r.lineJoin = .round
-            return r
+        /// Broad regional zoom around the user's city.
+        func applyCamera(
+            to map: MKMapView,
+            center: CLLocationCoordinate2D,
+            animated: Bool
+        ) {
+            let region = MKCoordinateRegion(
+                center: center,
+                latitudinalMeters: 2_000_000,
+                longitudinalMeters: 2_000_000
+            )
+            map.setRegion(region, animated: animated)
         }
     }
 }

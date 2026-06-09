@@ -12,12 +12,14 @@ import SwiftData
 struct FocusTrainApp: App {
     @State private var sessionStore = SessionStore()
     @State private var focusModeStore = FocusModeStore()
+    @State private var homeCityStore = HomeCityStore.shared
 
     var body: some Scene {
         WindowGroup {
             ContentView()
                 .environment(sessionStore)
                 .environment(focusModeStore)
+                .environment(homeCityStore)
         }
         .modelContainer(for: Journey.self)
     }

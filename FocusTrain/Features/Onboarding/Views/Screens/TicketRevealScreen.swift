@@ -4,7 +4,10 @@ struct TicketRevealScreen: View {
     let scenario: FocusScenario
 
     @State private var ticketIn = false
-    @State private var route: (from: Station, to: Station) = StationPool.randomPair()
+    @State private var route: (from: Station, to: Station) = (
+        from: Station.defaultOrigin,
+        to: Station(code: "RIO", city: "Rio de Janeiro", lat: -22.9068, lon: -43.1729)
+    )
     @State private var code: String = String(UUID().uuidString.prefix(8)).uppercased()
 
     private var departTime: String {

@@ -116,14 +116,11 @@ struct TrendsSheet: View {
                 .font(FT.Typography.sectionTitle)
                 .foregroundStyle(FT.Palette.white)
             Spacer()
-            Button(action: onClose) {
-                Image(systemName: "xmark")
-                    .font(.system(size: 14, weight: .bold))
-                    .foregroundStyle(FT.Palette.white)
-                    .frame(width: 40, height: 40)
-                    .background(Circle().fill(FT.Palette.bgElevated.opacity(0.6)))
-            }
-            .buttonStyle(.plain)
+            FTGlassIconButton(
+                systemName: "xmark",
+                accessibilityLabel: "common.close",
+                action: onClose
+            )
         }
     }
 
@@ -182,7 +179,8 @@ struct TrendsSheet: View {
             .frame(maxWidth: .infinity, alignment: .leading)
             .background(
                 RoundedRectangle(cornerRadius: 20, style: .continuous)
-                    .fill(.ultraThinMaterial)
+                    .fill(.clear)
+                    .ftGlassRounded(cornerRadius: 20)
             )
             .overlay(
                 RoundedRectangle(cornerRadius: 20, style: .continuous)
@@ -207,7 +205,11 @@ struct TrendsSheet: View {
                         .foregroundStyle(FT.Palette.black)
                         .padding(.horizontal, 18)
                         .padding(.vertical, 10)
-                        .background(Capsule(style: .continuous).fill(FT.Palette.white))
+                        .background(
+                            Capsule(style: .continuous)
+                                .fill(.clear)
+                                .ftGlassCapsule(interactive: true, tint: FT.Palette.white.opacity(0.75))
+                        )
                 }
                 .buttonStyle(.plain)
                 Spacer(minLength: 18)
@@ -261,7 +263,8 @@ private struct StatCard: View {
         .frame(height: 140)
         .background(
             RoundedRectangle(cornerRadius: 20, style: .continuous)
-                .fill(.ultraThinMaterial)
+                .fill(.clear)
+                .ftGlassRounded(cornerRadius: 20)
         )
         .overlay(
             RoundedRectangle(cornerRadius: 20, style: .continuous)
@@ -281,32 +284,33 @@ private struct RangePicker: View {
             let itemWidth = geo.size.width / count
             let index = CGFloat(TrendsSheet.Range.allCases.firstIndex(of: selection) ?? 0)
 
-            ZStack(alignment: .leading) {
-                RoundedRectangle(cornerRadius: 14, style: .continuous)
-                    .fill(.ultraThinMaterial)
-                    .overlay(
-                        RoundedRectangle(cornerRadius: 14, style: .continuous)
-                            .stroke(Color.white.opacity(0.08), lineWidth: 1)
-                    )
+            FTGlassContainer {
+                ZStack(alignment: .leading) {
+                    RoundedRectangle(cornerRadius: 14, style: .continuous)
+                        .fill(.clear)
+                        .ftGlass(.rounded(14))
+                        .ftGlassSelectionStroke(isSelected: false, shape: .rounded(14))
 
-                RoundedRectangle(cornerRadius: 11, style: .continuous)
-                    .fill(FT.Palette.white)
-                    .frame(width: itemWidth - 6, height: geo.size.height - 6)
-                    .offset(x: index * itemWidth + 3, y: 0)
-                    .animation(.spring(response: 0.35, dampingFraction: 0.85), value: selection)
+                    RoundedRectangle(cornerRadius: 11, style: .continuous)
+                        .fill(.clear)
+                        .ftGlassRounded(cornerRadius: 11, tint: FT.Palette.white.opacity(0.75))
+                        .frame(width: itemWidth - 6, height: geo.size.height - 6)
+                        .offset(x: index * itemWidth + 3, y: 0)
+                        .animation(.spring(response: 0.35, dampingFraction: 0.85), value: selection)
 
-                HStack(spacing: 0) {
-                    ForEach(TrendsSheet.Range.allCases) { option in
-                        Button(action: {
-                            UIImpactFeedbackGenerator(style: .soft).impactOccurred()
-                            selection = option
-                        }) {
-                            Text(NSLocalizedString(option.labelKey, comment: ""))
-                                .font(.system(size: 13, weight: .semibold))
-                                .foregroundStyle(selection == option ? FT.Palette.black : FT.Palette.textSecondary)
-                                .frame(maxWidth: .infinity, maxHeight: .infinity)
+                    HStack(spacing: 0) {
+                        ForEach(TrendsSheet.Range.allCases) { option in
+                            Button(action: {
+                                UIImpactFeedbackGenerator(style: .soft).impactOccurred()
+                                selection = option
+                            }) {
+                                Text(NSLocalizedString(option.labelKey, comment: ""))
+                                    .font(.system(size: 13, weight: .semibold))
+                                    .foregroundStyle(selection == option ? FT.Palette.black : FT.Palette.textSecondary)
+                                    .frame(maxWidth: .infinity, maxHeight: .infinity)
+                            }
+                            .buttonStyle(.plain)
                         }
-                        .buttonStyle(.plain)
                     }
                 }
             }

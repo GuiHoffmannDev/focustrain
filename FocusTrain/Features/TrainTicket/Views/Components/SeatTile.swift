@@ -18,7 +18,8 @@ struct SeatTile: View {
         Button(action: handleTap) {
             ZStack {
                 RoundedRectangle(cornerRadius: 10, style: .continuous)
-                    .fill(fill)
+                    .fill(.clear)
+                    .ftGlassRounded(cornerRadius: 10, interactive: true, tint: glassTint)
                     .overlay(
                         RoundedRectangle(cornerRadius: 10, style: .continuous)
                             .stroke(strokeColor, lineWidth: strokeWidth)
@@ -46,9 +47,9 @@ struct SeatTile: View {
         onTap()
     }
 
-    private var fill: Color {
+    private var glassTint: Color? {
         switch state {
-        case .available:      return FT.Palette.bgElevated.opacity(0.6)
+        case .available:      return nil
         case .previouslyUsed: return FT.Palette.brandRail.opacity(0.18)
         case .selected:       return FT.Palette.brandRail
         }

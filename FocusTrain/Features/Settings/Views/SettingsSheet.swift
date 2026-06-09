@@ -24,15 +24,14 @@ struct SettingsSheet: View {
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .topBarTrailing) {
+                    // Plain button: the iOS 26 toolbar supplies the Liquid Glass
+                    // chrome; a custom background here would double it.
                     Button(action: onClose) {
                         Image(systemName: "xmark")
                             .font(.system(size: 14, weight: .bold))
                             .foregroundStyle(FT.Palette.textPrimary)
-                            .frame(width: 30, height: 30)
-                            .background(
-                                Circle().fill(FT.Palette.bgElevated.opacity(0.6))
-                            )
                     }
+                    .accessibilityLabel(Text("common.close"))
                 }
             }
             .tint(FT.Palette.brandRail)
@@ -63,7 +62,9 @@ private struct SubscribeBanner: View {
                     .padding(.horizontal, 14)
                     .padding(.vertical, 9)
                     .background(
-                        Capsule().fill(FT.Palette.white)
+                        Capsule()
+                            .fill(.clear)
+                            .ftGlassCapsule(interactive: true, tint: FT.Palette.white.opacity(0.7))
                     )
             }
             .padding(18)
@@ -119,7 +120,8 @@ private struct RewardsBanner: View {
             .padding(.vertical, 12)
             .background(
                 RoundedRectangle(cornerRadius: 18, style: .continuous)
-                    .fill(.ultraThinMaterial)
+                    .fill(.clear)
+                    .ftGlassRounded(cornerRadius: 18, interactive: true)
             )
             .overlay(
                 RoundedRectangle(cornerRadius: 18, style: .continuous)
@@ -135,9 +137,12 @@ private struct RewardsBanner: View {
 private struct GeneralSection: View {
     @AppStorage("quietCarriageEnabled") private var quietCarriageEnabled: Bool = false
     @AppStorage("ft.notifications.enabled") private var notificationsEnabled: Bool = true
+    @Environment(HomeCityStore.self) private var homeCityStore
 
     var body: some View {
         SettingsSection(titleKey: "settings.section.general") {
+            HomeCityRow(currentCity: homeCityStore.manualCity?.name)
+            Divider().background(FT.Palette.white.opacity(0.06))
             ToggleRow(icon: "speaker.slash.fill",
                       titleKey: "settings.row.quietMode",
                       isOn: $quietCarriageEnabled)
@@ -223,7 +228,8 @@ private struct SettingsSection<Content: View>: View {
             VStack(spacing: 0) { content }
                 .background(
                     RoundedRectangle(cornerRadius: 18, style: .continuous)
-                        .fill(.ultraThinMaterial)
+                        .fill(.clear)
+                        .ftGlassRounded(cornerRadius: 18)
                 )
                 .overlay(
                     RoundedRectangle(cornerRadius: 18, style: .continuous)
@@ -279,6 +285,40 @@ private struct NavRow<Destination: View>: View {
                     .font(FT.Typography.body)
                     .foregroundStyle(FT.Palette.textPrimary)
                 Spacer()
+                Image(systemName: "chevron.right")
+                    .font(.system(size: 13, weight: .semibold))
+                    .foregroundStyle(FT.Palette.textMuted)
+            }
+            .padding(.horizontal, 14)
+            .padding(.vertical, 14)
+            .contentShape(Rectangle())
+        }
+        .buttonStyle(.plain)
+    }
+}
+
+private struct HomeCityRow: View {
+    let currentCity: String?
+
+    var body: some View {
+        NavigationLink(destination: CityPickerView()) {
+            HStack(spacing: 12) {
+                rowIcon("house.fill")
+                Text("settings.home.city")
+                    .font(FT.Typography.body)
+                    .foregroundStyle(FT.Palette.textPrimary)
+                Spacer()
+                if let currentCity {
+                    Text(currentCity)
+                        .font(FT.Typography.caption)
+                        .foregroundStyle(FT.Palette.textSecondary)
+                        .lineLimit(1)
+                        .truncationMode(.tail)
+                } else {
+                    Text("settings.home.city.auto")
+                        .font(FT.Typography.caption)
+                        .foregroundStyle(FT.Palette.textMuted)
+                }
                 Image(systemName: "chevron.right")
                     .font(.system(size: 13, weight: .semibold))
                     .foregroundStyle(FT.Palette.textMuted)
@@ -368,7 +408,8 @@ private struct ScenariosDetailView: View {
                         .frame(maxWidth: .infinity, alignment: .leading)
                         .background(
                             RoundedRectangle(cornerRadius: 16, style: .continuous)
-                                .fill(.ultraThinMaterial)
+                                .fill(.clear)
+                                .ftGlassRounded(cornerRadius: 16, interactive: true, tint: rawScenario == scenario.rawValue ? scenario.tint.opacity(0.28) : nil)
                         )
                         .overlay(
                             RoundedRectangle(cornerRadius: 16, style: .continuous)
@@ -404,7 +445,8 @@ private struct SoundHapticsDetailView: View {
             }
             .background(
                 RoundedRectangle(cornerRadius: 18, style: .continuous)
-                    .fill(.ultraThinMaterial)
+                    .fill(.clear)
+                    .ftGlassRounded(cornerRadius: 18)
             )
             .overlay(
                 RoundedRectangle(cornerRadius: 18, style: .continuous)
@@ -431,7 +473,8 @@ private struct InRideDetailView: View {
             }
             .background(
                 RoundedRectangle(cornerRadius: 18, style: .continuous)
-                    .fill(.ultraThinMaterial)
+                    .fill(.clear)
+                    .ftGlassRounded(cornerRadius: 18)
             )
             .overlay(
                 RoundedRectangle(cornerRadius: 18, style: .continuous)
@@ -505,13 +548,10 @@ private struct PickerCard: View {
                 }
             }
         }
-        .background(
-            RoundedRectangle(cornerRadius: 18, style: .continuous)
-                .fill(.ultraThinMaterial)
-        )
+        .ftGlass(.rounded(18))
         .overlay(
             RoundedRectangle(cornerRadius: 18, style: .continuous)
-                .stroke(FT.Palette.white.opacity(0.06), lineWidth: 1)
+                .strokeBorder(FT.Palette.white.opacity(0.06), lineWidth: 1)
         )
     }
 }
@@ -543,12 +583,17 @@ private struct AboutDetailView: View {
                     .font(FT.Typography.body)
                     .foregroundStyle(FT.Palette.textSecondary)
                     .fixedSize(horizontal: false, vertical: true)
+                Text("settings.about.geonames")
+                    .font(FT.Typography.caption)
+                    .foregroundStyle(FT.Palette.textMuted)
+                    .fixedSize(horizontal: false, vertical: true)
             }
             .padding(18)
             .frame(maxWidth: .infinity, alignment: .leading)
             .background(
                 RoundedRectangle(cornerRadius: 18, style: .continuous)
-                    .fill(.ultraThinMaterial)
+                    .fill(.clear)
+                    .ftGlassRounded(cornerRadius: 18)
             )
             .overlay(
                 RoundedRectangle(cornerRadius: 18, style: .continuous)
@@ -569,7 +614,8 @@ private struct TermsDetailView: View {
                 .frame(maxWidth: .infinity, alignment: .leading)
                 .background(
                     RoundedRectangle(cornerRadius: 18, style: .continuous)
-                        .fill(.ultraThinMaterial)
+                        .fill(.clear)
+                        .ftGlassRounded(cornerRadius: 18)
                 )
                 .overlay(
                     RoundedRectangle(cornerRadius: 18, style: .continuous)

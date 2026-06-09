@@ -9,7 +9,7 @@ struct AirPlayButton: View {
         RoutePicker()
             .frame(width: 40, height: 40)
             .background {
-                Color.clear.glassEffect(.regular, in: Circle())
+                Color.clear.ftGlassCircle(interactive: true)
             }
             .accessibilityLabel(Text(NSLocalizedString("session.sound.airplay.a11y", comment: "")))
             .accessibilityAddTraits(.isButton)

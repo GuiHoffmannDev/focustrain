@@ -32,11 +32,8 @@ struct SeatConfirmCard: View {
         .padding(20)
         .background(
             RoundedRectangle(cornerRadius: 24, style: .continuous)
-                .fill(FT.Palette.bgElevated.opacity(0.85))
-                .background(
-                    RoundedRectangle(cornerRadius: 24, style: .continuous)
-                        .fill(.ultraThinMaterial)
-                )
+                .fill(.clear)
+                .ftGlassRounded(cornerRadius: 24)
         )
         .overlay(
             RoundedRectangle(cornerRadius: 24, style: .continuous)

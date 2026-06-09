@@ -1,9 +1,27 @@
 import SwiftUI
 
-/// 40pt circular control used inside `SessionControlPill`. Three states:
-///   • idle     — translucent dark fill, white glyph.
-///   • active   — solid white fill, ink glyph. (Toggle-on visual.)
+/// Marks controls rendered inside a `SessionControlPill`. Grouped buttons must
+/// not paint their own Liquid Glass: nesting `glassEffect` inside the pill's
+/// glass capsule makes the shapes merge and smear the glyphs.
+private struct SessionControlGroupedKey: EnvironmentKey {
+    static let defaultValue = false
+}
+
+extension EnvironmentValues {
+    var sessionControlGrouped: Bool {
+        get { self[SessionControlGroupedKey.self] }
+        set { self[SessionControlGroupedKey.self] = newValue }
+    }
+}
+
+/// 48pt circular control used standalone or inside `SessionControlPill`.
+/// Three states:
+///   • idle     — plain Liquid Glass, white glyph.
+///   • active   — white fill, ink glyph. (Toggle-on visual, e.g. camera/tunnel.)
 ///   • disabled — idle styling at 0.4 opacity, hit testing off.
+///
+/// Buttons whose state already reads through the glyph (pause/play) should
+/// stay on `.idle` and let the icon swap communicate instead of a fill.
 struct SessionControlButton: View {
     enum State {
         case idle
@@ -16,6 +34,8 @@ struct SessionControlButton: View {
     let action: () -> Void
     var accessibilityLabel: String
     var accessibilityValue: String? = nil
+
+    @Environment(\.sessionControlGrouped) private var grouped
 
     init(
         systemName: String,
@@ -34,38 +54,36 @@ struct SessionControlButton: View {
     var body: some View {
         Button(action: action) {
             Image(systemName: systemName)
-                .font(.system(size: 16, weight: .bold))
-                .foregroundStyle(glyphColor)
-                .frame(width: 40, height: 40)
+                .font(.system(size: 18, weight: .bold))
+                .foregroundStyle(state == .active ? FT.Palette.ink : FT.Palette.white)
+                .frame(width: 48, height: 48)
                 .background {
-                    backgroundSurface
+                    if grouped {
+                        // The pill capsule already provides the glass; painting
+                        // more glass here would nest and smear. Active keeps a
+                        // plain translucent fill so the toggle still reads.
+                        if state == .active {
+                            Circle()
+                                .fill(FT.Palette.white.opacity(0.75))
+                        }
+                    } else if state == .active {
+                        Circle()
+                            .fill(.clear)
+                            .ftGlassCircle(interactive: true, tint: FT.Palette.white.opacity(0.75), liquid: true)
+                    } else {
+                        Circle()
+                            .fill(.clear)
+                            .ftGlassCircle(interactive: true, liquid: true)
+                    }
                 }
+                .contentShape(Circle())
+                .contentTransition(.symbolEffect(.replace))
         }
         .buttonStyle(.plain)
         .disabled(state == .disabled)
         .opacity(state == .disabled ? 0.4 : 1.0)
         .accessibilityLabel(accessibilityLabel)
         .accessibilityValue(accessibilityValue ?? "")
-    }
-
-    @ViewBuilder
-    private var backgroundSurface: some View {
-        switch state {
-        case .active:
-            Circle().fill(FT.Palette.white)
-        case .idle, .disabled:
-            Circle()
-                .fill(.clear)
-                .glassEffect(.regular, in: Circle())
-        }
-    }
-
-    private var glyphColor: Color {
-        switch state {
-        case .active:   return FT.Palette.ink
-        case .idle:     return FT.Palette.white
-        case .disabled: return FT.Palette.white
-        }
     }
 }
 
