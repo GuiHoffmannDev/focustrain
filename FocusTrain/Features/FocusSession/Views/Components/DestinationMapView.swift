@@ -37,14 +37,7 @@ struct DestinationMapView: UIViewRepresentable {
         map.addAnnotation(origin)
         context.coordinator.origin = origin
 
-        var pins: [StationAnnotation] = []
-        for (idx, dest) in model.destinations.enumerated() {
-            let a = StationAnnotation(index: idx, title: dest.city, code: dest.code)
-            a.coordinate = dest.station.coordinate
-            pins.append(a)
-        }
-        map.addAnnotations(pins)
-        context.coordinator.pins = pins
+        context.coordinator.syncStations(on: map)
 
         context.coordinator.applyRing(on: map)
         context.coordinator.reframe(map, animated: false)
@@ -74,6 +67,9 @@ struct DestinationMapView: UIViewRepresentable {
             origin.coordinate = model.origin.coordinate
         }
 
+        // As destinations carregam de forma assíncrona (query SQLite) *depois* do
+        // makeUIView, então os pins precisam ser (re)sincronizados aqui.
+        coord.syncStations(on: map)
         coord.applyRing(on: map)
 
         for ann in coord.pins {
@@ -98,6 +94,7 @@ struct DestinationMapView: UIViewRepresentable {
     final class Coordinator: NSObject, MKMapViewDelegate {
         let model: DurationPickerModel
         var pins: [StationAnnotation] = []
+        private var appliedRoute: [String] = []
         var origin: OriginAnnotation?
         var ring: MKCircle?
         var appliedStyle: MapStyle?
@@ -119,6 +116,25 @@ struct DestinationMapView: UIViewRepresentable {
             view.isAccessibilityElement = true
             view.accessibilityLabel = String(format: NSLocalizedString(key, comment: ""),
                                               dest.city, dest.minutes)
+        }
+
+        /// (Re)cria os pins quando `model.destinations` muda. A ladder carrega de
+        /// forma assíncrona (query SQLite) *depois* que o `makeUIView` roda com a
+        /// lista ainda vazia, então sem este sync o mapa fica sem pins mesmo com os
+        /// cards já populados. Reconstrói só quando a rota muda de fato.
+        func syncStations(on map: MKMapView) {
+            let signature = model.destinations.map {
+                "\($0.code)@\($0.station.coordinate.latitude),\($0.station.coordinate.longitude)"
+            }
+            guard signature != appliedRoute else { return }
+            appliedRoute = signature
+            map.removeAnnotations(pins)
+            pins = model.destinations.enumerated().map { idx, dest in
+                let a = StationAnnotation(index: idx, title: dest.city, code: dest.code)
+                a.coordinate = dest.station.coordinate
+                return a
+            }
+            map.addAnnotations(pins)
         }
 
         func applyRing(on map: MKMapView) {
