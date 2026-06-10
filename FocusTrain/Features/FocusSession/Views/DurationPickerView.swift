@@ -9,13 +9,16 @@ struct DurationPickerView: View {
     @State private var resolver = CurrentCityResolver()
     @State private var appeared = false
     @Environment(HomeCityStore.self) private var homeCityStore
+    @Environment(\.colorScheme) private var colorScheme
 
     @AppStorage("defaultMapStyle") private var rawMapStyle: String = MapStyle.monochrome.rawValue
     @AppStorage("mapShowLabels") private var showLabels: Bool = true
 
+    private var darkChrome: Bool { model.mapStyle.usesDarkChrome(for: colorScheme) }
+
     var body: some View {
         ZStack {
-            FT.Palette.black.ignoresSafeArea()
+            FT.Palette.bgPrimary.ignoresSafeArea()
 
             // A dessaturação do estilo monocromático é feita DENTRO do mapa
             // (subview abaixo dos pins), pra não apagar a cor da pill do destino.
@@ -25,7 +28,7 @@ struct DurationPickerView: View {
 
             // Scrim topo (título) para legibilidade.
             VStack {
-                LinearGradient(colors: [FT.Palette.black.opacity(0.6), .clear],
+                LinearGradient(colors: [(darkChrome ? FT.Palette.black : FT.Palette.scrim).opacity(0.6), .clear],
                                startPoint: .top, endPoint: .bottom)
                     .frame(height: 180)
                 Spacer()
@@ -37,7 +40,7 @@ struct DurationPickerView: View {
             VStack(alignment: .leading, spacing: 0) {
                 Text(NSLocalizedString("durationPicker.title", comment: ""))
                     .font(FT.Typography.sectionTitle)
-                    .foregroundStyle(FT.Palette.white)
+                    .foregroundStyle(darkChrome ? FT.Palette.white : FT.Palette.textPrimary)
                     .padding(.horizontal, FT.Layout.sideMargin)
                     .padding(.top, 8)
                     .opacity(appeared ? 1 : 0).offset(y: appeared ? 0 : 12)
@@ -61,7 +64,7 @@ struct DurationPickerView: View {
                 Button(action: onBack) {
                     Image(systemName: "chevron.left")
                         .font(.system(size: 17, weight: .bold))
-                        .foregroundStyle(FT.Palette.white)
+                        .foregroundStyle(FT.Palette.textPrimary)
                 }
                 .accessibilityLabel(Text("common.back"))
             }

@@ -5,7 +5,7 @@ struct OnboardingContainerView: View {
 
     var body: some View {
         ZStack {
-            FT.Palette.black.ignoresSafeArea()
+            FT.Palette.bgPrimary.ignoresSafeArea()
 
             VStack(spacing: 24) {
                 topBar
@@ -20,7 +20,6 @@ struct OnboardingContainerView: View {
             .padding(.horizontal, FT.Layout.sideMargin)
             .padding(.vertical, 20)
         }
-        .preferredColorScheme(.dark)
     }
 
     private var topBar: some View {

@@ -70,8 +70,10 @@ struct SeatTile: View {
     private var textColor: Color {
         switch state {
         case .available:      return FT.Palette.textMuted
-        case .previouslyUsed: return FT.Palette.white.opacity(0.75)
-        case .selected:       return FT.Palette.ink
+        case .previouslyUsed: return FT.Palette.textPrimary.opacity(0.75)
+        // Sits on the brandRail-filled tile (white in dark, #333 in light), so it
+        // needs the inverse glyph just like an active session control.
+        case .selected:       return FT.Palette.controlActiveGlyph
         }
     }
 

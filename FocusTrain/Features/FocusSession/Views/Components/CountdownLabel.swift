@@ -10,7 +10,7 @@ struct CountdownLabel: View {
         Text(text)
             .font(.system(size: 64, weight: .bold, design: .rounded))
             .monospacedDigit()
-            .foregroundStyle(FT.Palette.white)
+            .foregroundStyle(FT.Palette.textPrimary)
             .contentTransition(.numericText())
             .shadow(color: FT.Palette.brandRail.opacity(0.35), radius: 18)
     }

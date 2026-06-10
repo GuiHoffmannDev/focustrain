@@ -19,7 +19,7 @@ struct PremiumDiscountPill: View {
             Text(NSLocalizedString("home.premium.pill", comment: ""))
                 .font(.system(size: 12, weight: .heavy))
                 .tracking(0.5)
-                .foregroundStyle(FT.Palette.white)
+                .foregroundStyle(FT.Palette.textPrimary)
 
             Text(formatted(remaining))
                 .font(.system(size: 12, weight: .heavy, design: .monospaced))

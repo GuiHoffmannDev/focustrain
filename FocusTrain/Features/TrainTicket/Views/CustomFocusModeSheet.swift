@@ -60,7 +60,6 @@ struct CustomFocusModeSheet: View {
                     .padding(24)
                 }
             }
-            .preferredColorScheme(.dark)
             .navigationTitle(LocalizedStringKey("focusMode.custom.title"))
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {

@@ -11,7 +11,7 @@ struct GlowText: View {
             .font(font)
             .foregroundStyle(
                 LinearGradient(
-                    colors: [FT.Palette.brandRail, FT.Palette.white, FT.Palette.brandRail],
+                    colors: [FT.Palette.brandRail, FT.Palette.textPrimary, FT.Palette.brandRail],
                     startPoint: .topLeading,
                     endPoint: .bottomTrailing
                 )

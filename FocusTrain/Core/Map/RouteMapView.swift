@@ -14,6 +14,9 @@ struct RouteMapView: UIViewRepresentable {
     let showLabels: Bool
     let follow: Bool
 
+    /// Drives `updateUIView` on the scheme flip so custom chrome re-resolves.
+    @Environment(\.colorScheme) private var colorScheme
+
     /// Camera eye distance (metres) when following the train. Tight enough that
     /// the train fills the frame and the road slides past underneath it — the
     /// "I'm right there, locked in" feel — rather than a far regional overview.
@@ -24,6 +27,8 @@ struct RouteMapView: UIViewRepresentable {
     func makeUIView(context: Context) -> MKMapView {
         let map = MKMapView()
         map.delegate = context.coordinator
+        context.coordinator.chrome = style.chromeColors(for: colorScheme)
+        context.coordinator.appliedDarkChrome = style.usesDarkChrome(for: colorScheme)
         map.preferredConfiguration = style.mapConfiguration(showLabels: showLabels)
         map.isRotateEnabled = false
         map.isPitchEnabled = false
@@ -63,6 +68,15 @@ struct RouteMapView: UIViewRepresentable {
             map.pointOfInterestFilter = showLabels ? .includingAll : .excludingAll
             coord.appliedStyle = style
             coord.appliedLabels = showLabels
+        }
+
+        // Scheme/style flip → re-resolve chrome and re-apply (CGColor/UIImage
+        // can't follow a dynamic provider, so we re-paint by hand).
+        let darkChrome = style.usesDarkChrome(for: colorScheme)
+        if coord.appliedDarkChrome != darkChrome {
+            coord.appliedDarkChrome = darkChrome
+            coord.chrome = darkChrome ? .dark : .light
+            coord.reapplyChrome(on: map)
         }
 
         // Re-fetch when endpoints change.
@@ -117,6 +131,8 @@ struct RouteMapView: UIViewRepresentable {
         var train: TrainAnnotation?
         var appliedStyle: MapStyle?
         var appliedLabels: Bool?
+        var chrome: MapChromeColors = .dark
+        var appliedDarkChrome: Bool?
         var appliedEndpoints: (from: CLLocationCoordinate2D, to: CLLocationCoordinate2D)?
         var didFitRoute = false
         var currentBearing: CLLocationDirection = 0
@@ -154,6 +170,26 @@ struct RouteMapView: UIViewRepresentable {
             }
         }
 
+        /// Re-applies the resolved chrome after a scheme/style flip: the overlay
+        /// renderer, the endpoint dot images, and the train view (all CGColor/
+        /// UIImage, so none follow a dynamic provider).
+        func reapplyChrome(on map: MKMapView) {
+            if let active = activeOverlay {
+                map.removeOverlay(active)
+                map.addOverlay(active, level: .aboveRoads)
+            }
+            for ann in map.annotations {
+                if let endpoint = ann as? EndpointAnnotation, let v = map.view(for: endpoint) {
+                    v.image = EndpointAnnotationView.dot(filled: endpoint.kind == .destination,
+                                                         stroke: chrome.endpointStroke,
+                                                         hole: chrome.endpointHole)
+                } else if ann is TrainAnnotation,
+                          let tv = map.view(for: ann) as? TrainAnnotationView {
+                    tv.applyChrome(chrome)
+                }
+            }
+        }
+
         private func replaceOverlay(on map: MKMapView, with polyline: MKPolyline) {
             if let active = activeOverlay { map.removeOverlay(active) }
             map.addOverlay(polyline, level: .aboveRoads)
@@ -168,7 +204,7 @@ struct RouteMapView: UIViewRepresentable {
                 return MKOverlayRenderer(overlay: overlay)
             }
             let renderer = MKPolylineRenderer(polyline: line)
-            renderer.strokeColor = UIColor.white
+            renderer.strokeColor = chrome.routeLine
             renderer.lineWidth = 4
             renderer.lineCap = .round
             renderer.lineJoin = .round
@@ -182,6 +218,7 @@ struct RouteMapView: UIViewRepresentable {
                 let view = mapView.dequeueReusableAnnotationView(withIdentifier: id) as? TrainAnnotationView
                     ?? TrainAnnotationView(annotation: annotation, reuseIdentifier: id)
                 view.annotation = annotation
+                view.applyChrome(chrome)
                 view.applyBearing(currentBearing)
                 return view
             }
@@ -190,7 +227,9 @@ struct RouteMapView: UIViewRepresentable {
                 let view = mapView.dequeueReusableAnnotationView(withIdentifier: id)
                     ?? MKAnnotationView(annotation: annotation, reuseIdentifier: id)
                 view.annotation = annotation
-                view.image = EndpointAnnotationView.dot(filled: endpoint.kind == .destination)
+                view.image = EndpointAnnotationView.dot(filled: endpoint.kind == .destination,
+                                                        stroke: chrome.endpointStroke,
+                                                        hole: chrome.endpointHole)
                 view.centerOffset = .zero
                 return view
             }
@@ -243,6 +282,14 @@ final class TrainAnnotationView: MKAnnotationView {
 
     required init?(coder: NSCoder) { fatalError("init(coder:) has not been implemented") }
 
+    /// Re-paints the rim + glow for the active scheme. The dark capsule body and
+    /// the white tram glyph stay (they read as a physical marker in both schemes).
+    func applyChrome(_ chrome: MapChromeColors) {
+        body.layer.borderColor = chrome.trainBorder.cgColor
+        body.layer.shadowColor = chrome.trainGlow.cgColor
+        body.layer.shadowOpacity = chrome.trainGlowOpacity
+    }
+
     /// Rotate the train body to face `bearing` (degrees, 0 = north). Smooth
     /// over short durations so curves don't snap.
     func applyBearing(_ bearing: CLLocationDirection) {
@@ -253,20 +300,21 @@ final class TrainAnnotationView: MKAnnotationView {
     }
 }
 
-/// Small endpoint markers (origin = hollow, destination = filled).
+/// Small endpoint markers (origin = hollow, destination = filled). `stroke` is
+/// the chrome line colour; `hole` fills the hollow centre to match the map.
 enum EndpointAnnotationView {
-    static func dot(filled: Bool) -> UIImage {
+    static func dot(filled: Bool, stroke: UIColor, hole: UIColor) -> UIImage {
         let size = CGSize(width: 14, height: 14)
         return UIGraphicsImageRenderer(size: size).image { ctx in
             let rect = CGRect(origin: .zero, size: size).insetBy(dx: 2, dy: 2)
             let path = UIBezierPath(ovalIn: rect)
-            UIColor.white.setStroke()
+            stroke.setStroke()
             path.lineWidth = 2
             if filled {
-                UIColor.white.setFill()
+                stroke.setFill()
                 path.fill()
             } else {
-                UIColor(white: 0.06, alpha: 0.9).setFill()
+                hole.setFill()
                 path.fill()
             }
             path.stroke()

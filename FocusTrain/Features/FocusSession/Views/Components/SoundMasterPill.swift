@@ -22,7 +22,7 @@ struct SoundMasterPill: View {
                 ))
                 .font(.system(size: 12, weight: .bold))
             }
-            .foregroundStyle(isEnabled ? FT.Palette.white : FT.Palette.textSecondary)
+            .foregroundStyle(isEnabled ? FT.Palette.textPrimary : FT.Palette.textSecondary)
             .padding(.horizontal, 14)
             .padding(.vertical, 8)
             .background {

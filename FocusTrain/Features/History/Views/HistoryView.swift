@@ -66,7 +66,7 @@ struct HistoryView: View {
 
     var body: some View {
         ZStack {
-            FT.Palette.black.opacity(0.35).ignoresSafeArea()
+            FT.Palette.scrim.opacity(0.35).ignoresSafeArea()
             RadialGradient(
                 colors: [FT.Palette.brandRail.opacity(0.06), .clear],
                 center: .top, startRadius: 0, endRadius: 420
@@ -119,7 +119,7 @@ struct HistoryView: View {
             VStack(spacing: 2) {
                 Text(NSLocalizedString("history.title", comment: ""))
                     .font(FT.Typography.sectionTitle)
-                    .foregroundStyle(FT.Palette.white)
+                    .foregroundStyle(FT.Palette.textPrimary)
                 streakLine
             }
 
@@ -275,9 +275,9 @@ private struct FilterChip: View {
     var body: some View {
         FTGlassChip(
             isSelected: isSelected,
-            tint: FT.Palette.white.opacity(0.75),
+            tint: FT.Palette.chipSelectedTint,
             idleForeground: FT.Palette.textSecondary,
-            selectedForeground: FT.Palette.black,
+            selectedForeground: FT.Palette.chipSelectedFg,
             haptic: nil,
             action: action
         ) {
@@ -285,7 +285,7 @@ private struct FilterChip: View {
                 if let systemImage {
                     Image(systemName: systemImage)
                         .font(.system(size: 11, weight: .bold))
-                        .foregroundStyle(isSelected ? FT.Palette.black : tint)
+                        .foregroundStyle(isSelected ? FT.Palette.chipSelectedFg : tint)
                 }
                 Text(label)
                     .font(FT.Typography.caption.weight(.semibold))

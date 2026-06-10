@@ -12,7 +12,7 @@ struct SessionEllipsisButton: View {
         } label: {
             Image(systemName: isMenuOpen ? "xmark" : "ellipsis")
                 .font(.system(size: 18, weight: .bold))
-                .foregroundStyle(FT.Palette.white)
+                .foregroundStyle(FT.Palette.textPrimary)
                 .frame(width: 48, height: 48)
                 .background {
                     Color.clear.ftGlassCircle(interactive: true, liquid: true)

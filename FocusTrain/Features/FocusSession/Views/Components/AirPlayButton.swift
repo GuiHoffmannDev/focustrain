@@ -18,8 +18,12 @@ struct AirPlayButton: View {
     private struct RoutePicker: UIViewRepresentable {
         func makeUIView(context: Context) -> AVRoutePickerView {
             let v = AVRoutePickerView()
-            v.tintColor = UIColor.white
-            v.activeTintColor = UIColor.white
+            // UIKit view: a dynamic UIColor (not a SwiftUI token) so the glyph
+            // re-resolves on the scheme flip. Mirrors `textPrimary`.
+            let glyph = UIColor { $0.userInterfaceStyle == .dark
+                ? UIColor(hex: 0xFFFFFF) : UIColor(hex: 0x1A1A1A) }
+            v.tintColor = glyph
+            v.activeTintColor = glyph
             v.prioritizesVideoDevices = false
             v.backgroundColor = .clear
             return v

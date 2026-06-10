@@ -20,7 +20,7 @@ struct SessionPauseMenu: View {
                 .fill(.ultraThinMaterial)
                 .ignoresSafeArea()
 
-            FT.Palette.black.opacity(0.45)
+            FT.Palette.scrim.opacity(0.45)
                 .ignoresSafeArea()
 
             Color.clear
@@ -101,13 +101,13 @@ private struct MenuItemRow: View {
                     .overlay(
                         Image(systemName: iconName)
                             .font(.system(size: 18, weight: .semibold))
-                            .foregroundStyle(FT.Palette.white)
+                            .foregroundStyle(FT.Palette.textPrimary)
                     )
 
                 VStack(alignment: .leading, spacing: 4) {
                     Text(title)
                         .font(.system(size: 17, weight: .bold))
-                        .foregroundStyle(FT.Palette.white)
+                        .foregroundStyle(FT.Palette.textPrimary)
 
                     subtitleView
                 }

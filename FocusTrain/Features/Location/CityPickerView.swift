@@ -13,10 +13,10 @@ struct CityPickerView: View {
 
     var body: some View {
         ZStack {
-            FT.Palette.black.ignoresSafeArea()
+            FT.Palette.bgPrimary.ignoresSafeArea()
             VStack(spacing: 0) {
                 searchField
-                Divider().background(FT.Palette.white.opacity(0.08))
+                Divider().background(FT.Palette.strokeHairline)
                 content
             }
         }
@@ -61,7 +61,7 @@ struct CityPickerView: View {
         )
         .overlay(
             RoundedRectangle(cornerRadius: 14, style: .continuous)
-                .stroke(FT.Palette.white.opacity(0.08), lineWidth: 1)
+                .stroke(FT.Palette.strokeHairline, lineWidth: 1)
         )
         .padding(.horizontal, FT.Layout.sideMargin)
         .padding(.top, 12)
@@ -100,7 +100,7 @@ struct CityPickerView: View {
             LazyVStack(spacing: 0) {
                 ForEach(results, id: \.geonameId) { city in
                     row(for: city)
-                    Divider().background(FT.Palette.white.opacity(0.06))
+                    Divider().background(FT.Palette.strokeHairline)
                 }
             }
             .padding(.horizontal, FT.Layout.sideMargin)

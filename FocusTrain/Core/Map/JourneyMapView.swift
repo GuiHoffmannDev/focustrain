@@ -17,11 +17,16 @@ struct JourneyMapView: UIViewRepresentable {
     let routes: [JourneyRoute]
     var style: MapStyle = .monochrome
 
+    /// Drives `updateUIView` on the scheme flip so custom chrome re-resolves.
+    @Environment(\.colorScheme) private var colorScheme
+
     func makeCoordinator() -> Coordinator { Coordinator() }
 
     func makeUIView(context: Context) -> MKMapView {
         let map = MKMapView()
         map.delegate = context.coordinator
+        context.coordinator.chrome = style.chromeColors(for: colorScheme)
+        context.coordinator.appliedDarkChrome = style.usesDarkChrome(for: colorScheme)
         map.preferredConfiguration = style.mapConfiguration(showLabels: false)
         map.isRotateEnabled = false
         map.isPitchEnabled = false
@@ -32,14 +37,26 @@ struct JourneyMapView: UIViewRepresentable {
     }
 
     func updateUIView(_ map: MKMapView, context: Context) {
-        guard context.coordinator.appliedIDs != routes.map(\.id) else { return }
-        context.coordinator.reload(map, routes: routes, animated: true)
+        let coord = context.coordinator
+        let darkChrome = style.usesDarkChrome(for: colorScheme)
+        let chromeChanged = coord.appliedDarkChrome != darkChrome
+        if chromeChanged {
+            coord.appliedDarkChrome = darkChrome
+            coord.chrome = darkChrome ? .dark : .light
+        }
+        let routesChanged = coord.appliedIDs != routes.map(\.id)
+        // reload() rebuilds overlays + dots, so both renderer and viewFor pick up
+        // the new chrome — covering the scheme flip too.
+        guard routesChanged || chromeChanged else { return }
+        coord.reload(map, routes: routes, animated: routesChanged)
     }
 
     // MARK: - Coordinator
 
     final class Coordinator: NSObject, MKMapViewDelegate {
         var appliedIDs: [String] = []
+        var chrome: MapChromeColors = .dark
+        var appliedDarkChrome: Bool?
 
         func reload(_ map: MKMapView, routes: [JourneyRoute], animated: Bool) {
             map.removeOverlays(map.overlays)
@@ -70,7 +87,7 @@ struct JourneyMapView: UIViewRepresentable {
                 return MKOverlayRenderer(overlay: overlay)
             }
             let renderer = MKPolylineRenderer(polyline: line)
-            renderer.strokeColor = UIColor.white.withAlphaComponent(0.85)
+            renderer.strokeColor = chrome.journeyLine
             renderer.lineWidth = 2.5
             renderer.lineCap = .round
             renderer.lineJoin = .round
@@ -83,7 +100,9 @@ struct JourneyMapView: UIViewRepresentable {
             let view = mapView.dequeueReusableAnnotationView(withIdentifier: id)
                 ?? MKAnnotationView(annotation: annotation, reuseIdentifier: id)
             view.annotation = annotation
-            view.image = EndpointAnnotationView.dot(filled: endpoint.kind == .destination)
+            view.image = EndpointAnnotationView.dot(filled: endpoint.kind == .destination,
+                                                    stroke: chrome.endpointStroke,
+                                                    hole: chrome.endpointHole)
             view.centerOffset = .zero
             return view
         }

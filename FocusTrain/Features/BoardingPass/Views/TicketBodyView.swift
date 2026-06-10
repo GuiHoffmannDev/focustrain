@@ -39,7 +39,7 @@ struct TicketBodyView: View {
             VStack(alignment: .leading, spacing: 4) {
                 Text(display.fromCode)
                     .font(.system(size: 42, weight: .black, design: .default))
-                    .foregroundStyle(FT.Palette.brandRail)
+                    .foregroundStyle(FT.Palette.white)
                 Text(display.fromCity.uppercased())
                     .font(.system(size: 10, weight: .semibold, design: .monospaced))
                     .tracking(0.6)
@@ -49,7 +49,7 @@ struct TicketBodyView: View {
             VStack(spacing: 4) {
                 Image(systemName: "airplane")
                     .font(.system(size: 14, weight: .bold))
-                    .foregroundStyle(FT.Palette.brandRail.opacity(0.85))
+                    .foregroundStyle(FT.Palette.white.opacity(0.85))
                 Text(display.durationLabel)
                     .font(.system(size: 11, weight: .bold, design: .monospaced))
                     .tracking(0.4)
@@ -59,7 +59,7 @@ struct TicketBodyView: View {
             VStack(alignment: .trailing, spacing: 4) {
                 Text(display.toCode)
                     .font(.system(size: 42, weight: .black, design: .default))
-                    .foregroundStyle(FT.Palette.brandRail)
+                    .foregroundStyle(FT.Palette.white)
                 Text(display.toCity.uppercased())
                     .font(.system(size: 10, weight: .semibold, design: .monospaced))
                     .tracking(0.6)
@@ -89,7 +89,7 @@ struct TicketBodyView: View {
                 .foregroundStyle(Color(white: 0.5))
             Text(value)
                 .font(FT.Typography.ticketField)
-                .foregroundStyle(FT.Palette.brandRail)
+                .foregroundStyle(FT.Palette.white)
         }
     }
 }
