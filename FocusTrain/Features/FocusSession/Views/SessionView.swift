@@ -261,31 +261,25 @@ struct SessionView: View {
 
     private var runningRightColumn: some View {
         VStack(spacing: 12) {
-            SessionControlPill {
-                SessionControlButton(
+            SessionSegmentedPill(
+                selection: Binding(
+                    get: { cameraMode == .fitRoute ? 0 : 1 },
+                    set: { index in
+                        UIImpactFeedbackGenerator(style: .light).impactOccurred()
+                        withAnimation(.spring(response: 0.4, dampingFraction: 0.82)) {
+                            cameraMode = index == 0 ? .fitRoute : .centerTrain
+                        }
+                    }
+                ),
+                top: .init(
                     systemName: "point.topleft.down.to.point.bottomright.curvepath",
-                    state: cameraMode == .fitRoute ? .active : .idle,
-                    accessibilityLabel: NSLocalizedString("session.fit.route", comment: ""),
-                    accessibilityValue: cameraMode == .fitRoute ? "on" : "off"
-                ) {
-                    UIImpactFeedbackGenerator(style: .light).impactOccurred()
-                    withAnimation(.spring(response: 0.4, dampingFraction: 0.82)) {
-                        cameraMode = .fitRoute
-                    }
-                }
-
-                SessionControlButton(
+                    accessibilityLabel: NSLocalizedString("session.fit.route", comment: "")
+                ),
+                bottom: .init(
                     systemName: "scope",
-                    state: cameraMode == .centerTrain ? .active : .idle,
-                    accessibilityLabel: NSLocalizedString("session.center.train", comment: ""),
-                    accessibilityValue: cameraMode == .centerTrain ? "on" : "off"
-                ) {
-                    UIImpactFeedbackGenerator(style: .light).impactOccurred()
-                    withAnimation(.spring(response: 0.4, dampingFraction: 0.82)) {
-                        cameraMode = .centerTrain
-                    }
-                }
-            }
+                    accessibilityLabel: NSLocalizedString("session.center.train", comment: "")
+                )
+            )
 
             SessionControlButton(
                 systemName: "map",
