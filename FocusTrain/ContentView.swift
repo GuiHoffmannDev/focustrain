@@ -104,7 +104,7 @@ private struct ComingSoonSheet: View {
 
     var body: some View {
         ZStack {
-            FT.Palette.black.opacity(0.4).ignoresSafeArea()
+            FT.Palette.scrim.opacity(0.4).ignoresSafeArea()
             VStack(spacing: 14) {
                 Spacer()
                 Image(systemName: "hammer.fill")
@@ -112,7 +112,7 @@ private struct ComingSoonSheet: View {
                     .foregroundStyle(FT.Palette.textMuted)
                 Text(NSLocalizedString(titleKey, comment: ""))
                     .font(FT.Typography.sectionTitle)
-                    .foregroundStyle(FT.Palette.white)
+                    .foregroundStyle(FT.Palette.textPrimary)
                 Text(NSLocalizedString(captionKey, comment: ""))
                     .font(FT.Typography.body)
                     .foregroundStyle(FT.Palette.textSecondary)

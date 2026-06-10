@@ -39,6 +39,6 @@ struct SeatConfirmCard: View {
             RoundedRectangle(cornerRadius: 24, style: .continuous)
                 .stroke(FT.Palette.textMuted.opacity(0.25), lineWidth: 1)
         )
-        .shadow(color: .black.opacity(0.45), radius: 18, y: 10)
+        .shadow(color: FT.Palette.shadowSoft, radius: 18, y: 10)
     }
 }

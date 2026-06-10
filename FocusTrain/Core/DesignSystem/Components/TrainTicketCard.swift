@@ -83,7 +83,7 @@ struct TrainTicketCard: View {
                         .font(.system(size: 12, weight: .heavy, design: .default))
                         .tracking(1.2)
                 }
-                .foregroundStyle(FT.Palette.brandRail)
+                .foregroundStyle(FT.Palette.white)
                 Spacer()
                 Text(scenarioTag.uppercased())
                     .font(.system(size: 11, weight: .bold, design: .monospaced))
@@ -103,7 +103,7 @@ struct TrainTicketCard: View {
                 Spacer()
                 Image(systemName: "arrow.right")
                     .font(.system(size: 18, weight: .bold))
-                    .foregroundStyle(FT.Palette.brandRail)
+                    .foregroundStyle(FT.Palette.white)
                 Spacer()
                 VStack(alignment: .trailing, spacing: 2) {
                     Text(toCode)

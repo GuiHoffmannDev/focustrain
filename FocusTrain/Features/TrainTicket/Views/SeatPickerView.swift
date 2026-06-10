@@ -33,7 +33,7 @@ struct SeatPickerView: View {
 
     var body: some View {
         ZStack {
-            FT.Palette.black.ignoresSafeArea()
+            FT.Palette.bgPrimary.ignoresSafeArea()
             backdropGlow
 
             ScrollView(showsIndicators: false) {
@@ -66,7 +66,7 @@ struct SeatPickerView: View {
                 Button(action: onBack) {
                     Image(systemName: "chevron.left")
                         .font(.system(size: 17, weight: .bold))
-                        .foregroundStyle(FT.Palette.white)
+                        .foregroundStyle(FT.Palette.textPrimary)
                 }
                 .accessibilityLabel(Text("common.back"))
             }
@@ -115,7 +115,7 @@ struct SeatPickerView: View {
     private var header: some View {
         Text(NSLocalizedString("seatPicker.title", comment: ""))
             .font(FT.Typography.sectionTitle)
-            .foregroundStyle(FT.Palette.white)
+            .foregroundStyle(FT.Palette.textPrimary)
     }
 
     // MARK: - Bottom overlay (confirm card + CTA)
@@ -150,7 +150,7 @@ struct SeatPickerView: View {
         }
         .background(
             LinearGradient(
-                colors: [FT.Palette.black.opacity(0), FT.Palette.black],
+                colors: [FT.Palette.scrim.opacity(0), FT.Palette.scrim],
                 startPoint: .top,
                 endPoint: .bottom
             )

@@ -5,7 +5,7 @@ struct OnboardingContainerView: View {
 
     var body: some View {
         ZStack {
-            FT.Palette.black.ignoresSafeArea()
+            FT.Palette.bgPrimary.ignoresSafeArea()
 
             VStack(spacing: 24) {
                 topBar
