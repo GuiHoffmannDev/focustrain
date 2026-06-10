@@ -2,7 +2,7 @@ import SwiftUI
 import SwiftData
 import CoreLocation
 
-/// The cinematic Home: stars + a MapKit globe centred on the user's city, a
+/// The cinematic Home: a MapKit globe centred on the user's city, a
 /// pulsing white pin (with the streak badge floating beside it when active),
 /// a greeting + giant city name + Premium offer pill on top, and a primary CTA
 /// + three glass action cards (History / Trends / Settings) on the bottom.
@@ -72,12 +72,6 @@ struct HomeView: View {
             .compositingGroup()
             .ignoresSafeArea()
             .opacity(0.85)
-
-            if colorScheme == .dark {
-                StarsBackground()
-                    .blendMode(.screen)
-                    .allowsHitTesting(false)
-            }
 
             // Top vignette so greeting + pill stay readable over the globe.
             LinearGradient(
