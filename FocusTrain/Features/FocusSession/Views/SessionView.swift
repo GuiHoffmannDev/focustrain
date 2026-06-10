@@ -36,6 +36,11 @@ struct SessionView: View {
 
     @Environment(\.scenePhase) private var scenePhase
     @Environment(SessionStore.self) private var session
+    @Environment(\.colorScheme) private var colorScheme
+
+    /// Whether the map under the chrome reads dark (so scrims/text stay on the
+    /// dark side). terra/satellite are dark imagery in both schemes.
+    private var darkChrome: Bool { mapStyle.usesDarkChrome(for: colorScheme) }
 
     init(ticket: Ticket, onArrive: @escaping () -> Void, onEnd: @escaping () -> Void) {
         self.ticket = ticket
@@ -59,7 +64,7 @@ struct SessionView: View {
             .saturation(mapStyle == .monochrome ? 0 : 1)
             .allowsHitTesting(false)
 
-            FT.Palette.black
+            (darkChrome ? FT.Palette.black : FT.Palette.scrim)
                 .opacity(model.isPaused ? 0.85 : 0)
                 .ignoresSafeArea()
                 .allowsHitTesting(false)
@@ -87,13 +92,15 @@ struct SessionView: View {
                     SessionMetricTile(
                         label: NSLocalizedString("session.time.remaining", comment: ""),
                         value: model.remainingMinutesText,
-                        alignment: .leading
+                        alignment: .leading,
+                        onDarkBackdrop: darkChrome
                     )
                     Spacer()
                     SessionMetricTile(
                         label: NSLocalizedString("session.distance.remaining", comment: ""),
                         value: model.remainingDistanceText,
-                        alignment: .trailing
+                        alignment: .trailing,
+                        onDarkBackdrop: darkChrome
                     )
                 }
                 .padding(.bottom, 16)
@@ -132,7 +139,7 @@ struct SessionView: View {
                 .zIndex(10)
             }
         }
-        .background(FT.Palette.black)
+        .background(FT.Palette.bgPrimary)
         .navigationBarBackButtonHidden(true)
         .onAppear {
             model.store = session
@@ -333,8 +340,8 @@ struct SessionView: View {
                 .foregroundStyle(FT.Palette.textMuted)
             Text(model.elapsedText)
                 .font(.system(size: 24, weight: .bold))
-                .foregroundStyle(FT.Palette.white)
-                .shadow(color: .black.opacity(0.4), radius: 3, x: 0, y: 1)
+                .foregroundStyle(darkChrome ? FT.Palette.white : FT.Palette.textPrimary)
+                .shadow(color: FT.Palette.shadowSoft, radius: 3, x: 0, y: 1)
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .bottom)
         .padding(.bottom, 110)
@@ -345,15 +352,16 @@ struct SessionView: View {
     // MARK: - Scrim
 
     private var scrim: some View {
-        VStack {
+        let base = darkChrome ? FT.Palette.black : FT.Palette.scrim
+        return VStack {
             LinearGradient(
-                colors: [FT.Palette.black.opacity(0.75), .clear],
+                colors: [base.opacity(0.75), .clear],
                 startPoint: .top, endPoint: .bottom
             )
             .frame(height: 220)
             Spacer()
             LinearGradient(
-                colors: [.clear, FT.Palette.black.opacity(0.85)],
+                colors: [.clear, base.opacity(0.85)],
                 startPoint: .top, endPoint: .bottom
             )
             .frame(height: 280)

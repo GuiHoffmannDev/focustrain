@@ -25,7 +25,7 @@ struct JourneyMapScreen: View {
 
     var body: some View {
         ZStack {
-            FT.Palette.black.ignoresSafeArea()
+            FT.Palette.bgPrimary.ignoresSafeArea()
 
             if journeys.isEmpty {
                 emptyState
@@ -35,9 +35,10 @@ struct JourneyMapScreen: View {
                     .ignoresSafeArea()
                     .opacity(appeared ? 1 : 0)
 
-                // Top gradient scrim so the header reads over the map.
+                // Top gradient scrim so the header reads over the map (always
+                // monochrome, so the chrome scheme follows the appearance directly).
                 LinearGradient(
-                    colors: [FT.Palette.black.opacity(0.85), .clear],
+                    colors: [FT.Palette.scrim.opacity(0.85), .clear],
                     startPoint: .top, endPoint: .bottom
                 )
                 .frame(height: 220)
@@ -71,7 +72,7 @@ struct JourneyMapScreen: View {
             Button(action: onBack) {
                 Image(systemName: "chevron.left")
                     .font(.system(size: 16, weight: .bold))
-                    .foregroundStyle(FT.Palette.white)
+                    .foregroundStyle(FT.Palette.textPrimary)
                     .frame(width: 40, height: 40)
                     .background(Circle().fill(FT.Palette.bgElevated.opacity(0.6)))
             }
@@ -82,7 +83,7 @@ struct JourneyMapScreen: View {
             VStack(spacing: 2) {
                 Text(NSLocalizedString("journeymap.title", comment: ""))
                     .font(FT.Typography.sectionTitle)
-                    .foregroundStyle(FT.Palette.white)
+                    .foregroundStyle(FT.Palette.textPrimary)
                 if !journeys.isEmpty {
                     Text("\(journeys.count) \(NSLocalizedString("journeymap.count", comment: ""))")
                         .font(FT.Typography.caption)

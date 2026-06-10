@@ -16,7 +16,8 @@ enum MapStyle: String, CaseIterable, Identifiable {
 
     var swatch: [Color] {
         switch self {
-        case .monochrome: return [Color(hex: 0x222222), Color(hex: 0x555555)]
+        case .monochrome: return [Color(light: 0xEEEEEE, dark: 0x222222),
+                                  Color(light: 0xBBBBBB, dark: 0x555555)]
         case .terra:      return [Color(hex: 0x8B6F4E), Color(hex: 0xC09872)]
         case .standard:   return [Color(hex: 0x2E5C8A), Color(hex: 0x4F86C6)]
         case .satellite:  return [Color(hex: 0x1B3A2E), Color(hex: 0x3D7053)]
@@ -46,6 +47,14 @@ struct MapStyleSelector: View {
         }
     }
 
+    /// On the mono swatch the gradient flips light/dark, so the icon must too;
+    /// the coloured swatches stay dark-ish in both schemes, so white reads there.
+    private func mapIconColor(for style: MapStyle) -> Color {
+        style == .monochrome
+            ? Color(light: 0x1A1A1A, dark: 0xFFFFFF).opacity(0.4)
+            : FT.Palette.white.opacity(0.4)
+    }
+
     private func tile(for style: MapStyle) -> some View {
         let isSelected = selection == style
         return Button {
@@ -66,7 +75,7 @@ struct MapStyleSelector: View {
                     .overlay(
                         Image(systemName: "map")
                             .font(.system(size: 22, weight: .bold))
-                            .foregroundStyle(FT.Palette.white.opacity(0.4))
+                            .foregroundStyle(mapIconColor(for: style))
                     )
                 Text(style.displayName)
                     .font(.system(size: 14, weight: .semibold))
