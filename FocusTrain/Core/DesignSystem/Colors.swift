@@ -96,6 +96,10 @@ enum FT {
                                               dark:  0xFFFFFF, darkAlpha:  0.75)
         /// Glyph on an active control + foreground of the primary CTA.
         static let controlActiveGlyph = Color(light: 0xFFFFFF, dark: 0x1A1A2E)
+        /// Solid fill of the selected-segment thumb (SessionSegmentedPill).
+        /// Deliberately opaque — the reference design uses a solid block;
+        /// standalone toggles keep the translucent `controlActiveTint`.
+        static let controlThumb       = Color(light: 0x1A1A2E, dark: 0xFFFFFF)
         /// Fill of a selected filter chip (History/Trends).
         static let chipSelectedTint   = Color(light: 0x1A1A2E, lightAlpha: 0.75,
                                               dark:  0xFFFFFF, darkAlpha:  0.75)
