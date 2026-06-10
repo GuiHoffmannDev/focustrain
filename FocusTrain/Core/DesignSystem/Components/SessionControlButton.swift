@@ -55,7 +55,7 @@ struct SessionControlButton: View {
         Button(action: action) {
             Image(systemName: systemName)
                 .font(.system(size: 18, weight: .bold))
-                .foregroundStyle(state == .active ? FT.Palette.ink : FT.Palette.white)
+                .foregroundStyle(state == .active ? FT.Palette.controlActiveGlyph : FT.Palette.textPrimary)
                 .frame(width: 48, height: 48)
                 .background {
                     if grouped {
@@ -64,12 +64,12 @@ struct SessionControlButton: View {
                         // plain translucent fill so the toggle still reads.
                         if state == .active {
                             Circle()
-                                .fill(FT.Palette.white.opacity(0.75))
+                                .fill(FT.Palette.controlActiveTint)
                         }
                     } else if state == .active {
                         Circle()
                             .fill(.clear)
-                            .ftGlassCircle(interactive: true, tint: FT.Palette.white.opacity(0.75), liquid: true)
+                            .ftGlassCircle(interactive: true, tint: FT.Palette.controlActiveTint, liquid: true)
                     } else {
                         Circle()
                             .fill(.clear)

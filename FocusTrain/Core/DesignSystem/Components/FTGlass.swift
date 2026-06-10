@@ -84,7 +84,7 @@ extension View {
     /// hairline white-0.08 1pt otherwise. Single definition for every chip/cell.
     @ViewBuilder
     func ftGlassSelectionStroke(isSelected: Bool, shape: FTGlassShape) -> some View {
-        let color: Color = isSelected ? FT.Palette.brandRail.opacity(0.85) : FT.Palette.white.opacity(0.08)
+        let color: Color = isSelected ? FT.Palette.brandRail.opacity(0.85) : FT.Palette.strokeHairline
         let lineWidth: CGFloat = isSelected ? 2 : 1
         switch shape {
         case .capsule:
@@ -183,7 +183,7 @@ struct FTGlassCardButton: View {
                 VStack(alignment: .leading, spacing: 2) {
                     Text(title)
                         .font(.system(size: 15, weight: .bold))
-                        .foregroundStyle(FT.Palette.white)
+                        .foregroundStyle(FT.Palette.textPrimary)
                     Text(caption)
                         .font(.system(size: 12))
                         .foregroundStyle(FT.Palette.textSecondary)
@@ -197,7 +197,7 @@ struct FTGlassCardButton: View {
             .padding(.vertical, 14)
             .overlay(
                 RoundedRectangle(cornerRadius: cornerRadius, style: .continuous)
-                    .strokeBorder(Color.white.opacity(0.10), lineWidth: 1)
+                    .strokeBorder(FT.Palette.strokeCard, lineWidth: 1)
             )
         }
         .buttonStyle(FTGlassButtonStyle(shape: .rounded(cornerRadius), haptic: .light, pressedScale: 0.98))

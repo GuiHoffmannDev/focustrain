@@ -44,9 +44,9 @@ struct CTAButton: View {
 
     private var foreground: Color {
         switch style {
-        case .primary:   return FT.Palette.ink
-        case .secondary: return FT.Palette.white
-        case .ghost:     return FT.Palette.white
+        case .primary:   return FT.Palette.controlActiveGlyph
+        case .secondary: return FT.Palette.textPrimary
+        case .ghost:     return FT.Palette.textPrimary
         }
     }
 }
@@ -55,7 +55,7 @@ struct FTGlassIconButton: View {
     let systemName: String
     var size: CGFloat = 40
     var iconSize: CGFloat = 14
-    var foreground: Color = FT.Palette.white
+    var foreground: Color = FT.Palette.textPrimary
     var tint: Color? = nil
     var accessibilityLabel: LocalizedStringKey? = nil
     let action: () -> Void
