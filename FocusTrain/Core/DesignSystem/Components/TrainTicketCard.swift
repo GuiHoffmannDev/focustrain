@@ -165,3 +165,19 @@ struct TrainTicketCard: View {
         }
     }
 }
+
+#if DEBUG
+private func _ticketPreview() -> some View {
+    TrainTicketCard(
+        fromCode: "SAO", toCode: "RIO",
+        fromName: "São Paulo", toName: "Rio de Janeiro",
+        scenarioTag: "Forest", departLabel: "12 Jun 2026",
+        durationLabel: "60 min", ticketCode: "FT-7K2Q"
+    )
+    .padding()
+    .background(FT.Palette.bgPrimary)
+}
+
+#Preview("Ticket — Dark") { _ticketPreview().preferredColorScheme(.dark) }
+#Preview("Ticket — Light") { _ticketPreview().preferredColorScheme(.light) }
+#endif

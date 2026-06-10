@@ -203,3 +203,25 @@ struct FTGlassCardButton: View {
         .buttonStyle(FTGlassButtonStyle(shape: .rounded(cornerRadius), haptic: .light, pressedScale: 0.98))
     }
 }
+
+#if DEBUG
+private func _glassPreview() -> some View {
+    VStack(spacing: 16) {
+        FTGlassChip(isSelected: true, tint: FT.Palette.chipSelectedTint,
+                    selectedForeground: FT.Palette.chipSelectedFg, action: {}) {
+            Text("Selected").padding(.horizontal, 14).padding(.vertical, 9)
+        }
+        FTGlassChip(isSelected: false, tint: FT.Palette.chipSelectedTint, action: {}) {
+            Text("Idle").padding(.horizontal, 14).padding(.vertical, 9)
+        }
+        FTGlassCardButton(title: "History", caption: "Your journeys",
+                          systemImage: "clock.arrow.circlepath", action: {})
+    }
+    .padding(24)
+    .frame(maxWidth: .infinity, maxHeight: .infinity)
+    .background(FT.Palette.bgPrimary)
+}
+
+#Preview("Glass — Dark") { _glassPreview().preferredColorScheme(.dark) }
+#Preview("Glass — Light") { _glassPreview().preferredColorScheme(.light) }
+#endif

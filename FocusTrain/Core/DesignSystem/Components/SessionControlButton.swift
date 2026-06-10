@@ -96,3 +96,14 @@ struct SessionControlButton: View {
     .padding()
     .background(FT.Palette.bgElevated)
 }
+
+#Preview("States — Light") {
+    HStack(spacing: 12) {
+        SessionControlButton(systemName: "moon", state: .idle, accessibilityLabel: "Tunnel") {}
+        SessionControlButton(systemName: "moon.zzz.fill", state: .active, accessibilityLabel: "Tunnel") {}
+        SessionControlButton(systemName: "pause.fill", state: .disabled, accessibilityLabel: "Pause") {}
+    }
+    .padding()
+    .background(FT.Palette.bgElevated)
+    .preferredColorScheme(.light)
+}
