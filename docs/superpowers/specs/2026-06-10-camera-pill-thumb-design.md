@@ -33,8 +33,10 @@ junto (morph animado dos raios).
 - **Um call site:** `SessionView.runningRightColumn` troca o
   `SessionControlPill { 2× SessionControlButton }` pelo componente novo.
 - **Um token novo** em `Colors.swift` (ver Cores).
-- `SessionControlPill` e `SessionControlButton` **não mudam** — continuam
-  servindo os botões avulsos (pause, música, mapa, túnel) e o par pause/música.
+- `SessionControlPill` e `SessionControlButton` **não mudam**.
+  `SessionControlButton` continua servindo os botões avulsos (pause, música,
+  mapa, túnel); `SessionControlPill` fica sem call sites no app após a troca
+  (permanece no DS, exercitada pelos próprios previews).
 
 Fora de escopo: mudar ícones, hierarquia ou posição dos controles; os demais
 botões da coluna; qualquer outro uso de pílula no app.
