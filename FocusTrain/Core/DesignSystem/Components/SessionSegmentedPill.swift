@@ -79,7 +79,7 @@ struct SessionSegmentedPill: View {
                 .foregroundStyle(isSelected ? FT.Palette.controlActiveGlyph
                                             : FT.Palette.textPrimary)
                 .frame(width: glyphSize, height: glyphSize)
-                .contentShape(Circle())
+                .contentShape(Rectangle())
         }
         .buttonStyle(.plain)
         .accessibilityLabel(option.accessibilityLabel)
