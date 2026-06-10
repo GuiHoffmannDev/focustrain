@@ -3,6 +3,14 @@ import SwiftUI
 struct TimeRulerView: View {
     let model: DurationPickerModel
 
+    @Environment(\.colorScheme) private var colorScheme
+
+    /// The ruler floats over the map, so its ticks/labels follow the map chrome
+    /// (charcoal over a light map, white over a dark one) at the same opacities.
+    private var rulerInk: Color {
+        model.mapStyle.usesDarkChrome(for: colorScheme) ? .white : Color(hex: 0x1A1A1A)
+    }
+
     private let majorSpacing: CGFloat = 66
     private let fineTicksPerSegment: Int = 6
     private let frameHeight: CGFloat = 62
@@ -40,7 +48,7 @@ struct TimeRulerView: View {
                     var fine = Path()
                     fine.move(to: CGPoint(x: x, y: midY - 3))
                     fine.addLine(to: CGPoint(x: x, y: midY + 3))
-                    ctx.stroke(fine, with: .color(.white.opacity(0.18)), lineWidth: 1.0)
+                    ctx.stroke(fine, with: .color(rulerInk.opacity(0.18)), lineWidth: 1.0)
                 }
 
                 // Major ticks + labels.
@@ -52,11 +60,11 @@ struct TimeRulerView: View {
                     tick.move(to: CGPoint(x: x, y: midY - (sel ? 14 : 10)))
                     tick.addLine(to: CGPoint(x: x, y: midY + (sel ? 14 : 10)))
                     ctx.stroke(tick,
-                               with: .color(sel ? FT.Palette.brandRail : .white.opacity(0.4)),
+                               with: .color(sel ? FT.Palette.brandRail : rulerInk.opacity(0.4)),
                                lineWidth: sel ? 2.5 : 1.5)
                     let label = Text(dest.durationLabel)
                         .font(.system(size: sel ? 16 : 12, weight: sel ? .bold : .medium))
-                        .foregroundColor(.white.opacity(sel ? 1.0 : 0.5))
+                        .foregroundColor(rulerInk.opacity(sel ? 1.0 : 0.5))
                     ctx.draw(label, at: CGPoint(x: x, y: midY + 22))
                 }
             }

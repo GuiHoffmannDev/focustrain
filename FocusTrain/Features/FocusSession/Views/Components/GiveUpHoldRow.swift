@@ -47,7 +47,7 @@ struct GiveUpHoldRow: View {
 
             Text(NSLocalizedString("session.menu.giveup", comment: ""))
                 .font(.system(size: 17, weight: .bold))
-                .foregroundStyle(FT.Palette.white)
+                .foregroundStyle(FT.Palette.textPrimary)
         }
     }
 

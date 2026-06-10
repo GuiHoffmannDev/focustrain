@@ -26,6 +26,9 @@ struct HomeView: View {
         MapStyle(rawValue: rawMapStyle) ?? .monochrome
     }
 
+    /// Whether the globe under the chrome reads dark (so the vignettes stay dark).
+    private var darkChrome: Bool { currentMapStyle.usesDarkChrome(for: colorScheme) }
+
     // Fallback origin when the user denies (or hasn't yet granted) location:
     // São Paulo. Keeps the Home meaningful instead of dropping into mid-Atlantic.
     private static let fallbackCenter = CLLocationCoordinate2D(
@@ -54,7 +57,7 @@ struct HomeView: View {
 
     var body: some View {
         ZStack {
-            FT.Palette.black.ignoresSafeArea()
+            FT.Palette.bgPrimary.ignoresSafeArea()
 
             ZStack {
                 GlobeHomeView(center: globeCenter,
@@ -78,7 +81,7 @@ struct HomeView: View {
 
             // Top vignette so greeting + pill stay readable over the globe.
             LinearGradient(
-                colors: [FT.Palette.black.opacity(0.65), .clear],
+                colors: [(darkChrome ? FT.Palette.black : FT.Palette.scrim).opacity(0.65), .clear],
                 startPoint: .top, endPoint: .center
             )
             .ignoresSafeArea()
@@ -86,7 +89,7 @@ struct HomeView: View {
 
             // Bottom vignette behind the CTA stack.
             LinearGradient(
-                colors: [.clear, FT.Palette.black.opacity(0.85)],
+                colors: [.clear, (darkChrome ? FT.Palette.black : FT.Palette.scrim).opacity(0.85)],
                 startPoint: .center, endPoint: .bottom
             )
             .ignoresSafeArea()
@@ -139,7 +142,7 @@ struct HomeView: View {
 
                     Text(cityDisplay)
                         .font(.system(size: 44, weight: .heavy))
-                        .foregroundStyle(FT.Palette.white)
+                        .foregroundStyle(FT.Palette.textPrimary)
                         .lineLimit(1)
                         .minimumScaleFactor(0.6)
                         .contentTransition(.opacity)
@@ -178,7 +181,7 @@ struct HomeView: View {
             )
             .overlay(
                 RoundedRectangle(cornerRadius: 12, style: .continuous)
-                    .stroke(FT.Palette.white.opacity(0.08), lineWidth: 1)
+                    .stroke(FT.Palette.strokeHairline, lineWidth: 1)
             )
         }
         .buttonStyle(.plain)

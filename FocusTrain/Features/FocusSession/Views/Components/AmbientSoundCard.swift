@@ -54,7 +54,7 @@ struct AmbientSoundCard: View {
     private func glyph(opacity: Double) -> some View {
         Image(systemName: sound.symbol)
             .font(.system(size: 90, weight: .semibold))
-            .foregroundStyle(FT.Palette.white.opacity(opacity))
+            .foregroundStyle(FT.Palette.textPrimary.opacity(opacity))
             .rotationEffect(.degrees(-12))
             .offset(x: 18, y: 18)
             .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .bottomTrailing)
@@ -72,7 +72,7 @@ struct AmbientSoundCard: View {
             HStack(spacing: 6) {
                 Spacer()
                 Circle()
-                    .fill(isOn ? FT.Palette.white : FT.Palette.textMuted)
+                    .fill(isOn ? FT.Palette.textPrimary : FT.Palette.textMuted)
                     .frame(width: 6, height: 6)
                 Text(NSLocalizedString(isOn ? "sound.state.on" : "sound.state.off", comment: ""))
                     .font(.system(size: 12, weight: .bold))
@@ -94,7 +94,7 @@ struct ComingSoonCard: View {
                 .overlay {
                     Image(systemName: "door.left.hand.closed")
                         .font(.system(size: 90, weight: .semibold))
-                        .foregroundStyle(FT.Palette.white.opacity(0.10))
+                        .foregroundStyle(FT.Palette.textPrimary.opacity(0.10))
                         .rotationEffect(.degrees(-12))
                         .offset(x: 18, y: 18)
                         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .bottomTrailing)
