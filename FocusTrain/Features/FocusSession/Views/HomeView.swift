@@ -17,6 +17,7 @@ struct HomeView: View {
     @State private var resolver = CurrentCityResolver()
     @State private var appeared = false
     @Environment(HomeCityStore.self) private var homeCityStore
+    @Environment(\.colorScheme) private var colorScheme
 
     @AppStorage("defaultMapStyle") private var rawMapStyle: String = MapStyle.monochrome.rawValue
     @AppStorage("mapShowLabels") private var mapShowLabels: Bool = true
@@ -69,9 +70,11 @@ struct HomeView: View {
             .ignoresSafeArea()
             .opacity(0.85)
 
-            StarsBackground()
-                .blendMode(.screen)
-                .allowsHitTesting(false)
+            if colorScheme == .dark {
+                StarsBackground()
+                    .blendMode(.screen)
+                    .allowsHitTesting(false)
+            }
 
             // Top vignette so greeting + pill stay readable over the globe.
             LinearGradient(

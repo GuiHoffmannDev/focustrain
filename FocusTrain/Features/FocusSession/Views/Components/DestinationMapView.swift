@@ -30,7 +30,6 @@ struct DestinationMapView: UIViewRepresentable {
         map.showsScale = false
         map.showsBuildings = false
         map.pointOfInterestFilter = .excludingAll
-        map.overrideUserInterfaceStyle = .dark
 
         let origin = OriginAnnotation()
         origin.coordinate = model.origin.coordinate

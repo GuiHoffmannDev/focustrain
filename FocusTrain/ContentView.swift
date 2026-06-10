@@ -11,7 +11,6 @@ struct ContentView: View {
                 OnboardingContainerView()
             }
         }
-        .preferredColorScheme(.dark)
     }
 }
 

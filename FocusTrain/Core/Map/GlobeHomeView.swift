@@ -24,7 +24,6 @@ struct GlobeHomeView: UIViewRepresentable {
         map.showsScale = false
         map.showsBuildings = false
         map.pointOfInterestFilter = .excludingAll
-        map.overrideUserInterfaceStyle = .dark
 
         context.coordinator.applyCamera(to: map, center: center, animated: false)
         context.coordinator.appliedCenter = center

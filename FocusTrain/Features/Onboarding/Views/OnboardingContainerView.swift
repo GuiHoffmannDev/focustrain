@@ -20,7 +20,6 @@ struct OnboardingContainerView: View {
             .padding(.horizontal, FT.Layout.sideMargin)
             .padding(.vertical, 20)
         }
-        .preferredColorScheme(.dark)
     }
 
     private var topBar: some View {
