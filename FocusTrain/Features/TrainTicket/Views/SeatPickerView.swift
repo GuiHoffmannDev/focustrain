@@ -2,34 +2,69 @@ import SwiftUI
 import SwiftData
 import UIKit
 
-/// Last step before the ride: pick a seat in the wagon and an intention chip.
-/// Mirrors the visual cadence of the compose flow (black bg + brandRail
-/// backdrop glow + spring reveal + back chevron toolbar) so the embarkation
-/// flow feels continuous.
+/// Last step before the ride: a scrollable top-down steam train. Tap a seat
+/// and it morphs into the focus-reason modal; the chosen mode's icon fills the
+/// seat; Confirm hands the ticket to the boarding pass.
 struct SeatPickerView: View {
     let incomingTicket: Ticket
     var onDepart: (Ticket) -> Void
     var onBack: () -> Void
 
     @Environment(FocusModeStore.self) private var focusModeStore
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @Query private var journeys: [Journey]
 
-    @State private var selectedSeat: String?
+    /// Interaction phases. `choosing`/`filled`/`departing` carry the seat code.
+    private enum Phase: Equatable {
+        case idle
+        case choosing(String)
+        case filled(String)
+        case departing(String)
+    }
+
+    @State private var phase: Phase = .idle
     @State private var selectedDefault: FocusMode?
     @State private var selectedCustomID: UUID?
-    @State private var showCustomSheet: Bool = false
-    @State private var appeared: Bool = false
+    @State private var showCustomSheet = false
+    @State private var appeared = false
     @State private var pendingBoardingPass: Ticket?
+
     @Namespace private var seatNamespace
 
     private let layout = WagonLayout.standard
+    private let morphSpring = Animation.spring(response: 0.42, dampingFraction: 0.86)
 
     private var usedSeats: Set<String> {
         SeatHistory.usedSeatCodes(in: journeys)
     }
 
-    private var canDepart: Bool {
-        selectedSeat != nil && (selectedDefault != nil || selectedCustomID != nil)
+    private var chosenSeat: String? {
+        if case .choosing(let code) = phase { return code }
+        return nil
+    }
+
+    private var isDeparting: Bool {
+        if case .departing = phase { return true }
+        return false
+    }
+
+    private var isScrollLocked: Bool {
+        switch phase {
+        case .choosing, .departing: return true
+        case .idle, .filled:        return false
+        }
+    }
+
+    /// Symbol/tint/name of whichever mode is selected (default or custom).
+    private var chosenMode: (symbol: String, tint: Color, name: String)? {
+        if let mode = selectedDefault {
+            return (mode.symbol, mode.tint, mode.rawValue)
+        }
+        if let id = selectedCustomID,
+           let custom = focusModeStore.customModes.first(where: { $0.id == id }) {
+            return (custom.symbol, custom.tint, custom.name)
+        }
+        return nil
     }
 
     var body: some View {
@@ -38,34 +73,19 @@ struct SeatPickerView: View {
             backdropGlow
 
             ScrollView(showsIndicators: false) {
-                VStack(alignment: .leading, spacing: 24) {
-                    header
-                        .opacity(appeared ? 1 : 0)
-                        .offset(y: appeared ? 0 : 12)
-
-                    WagonView(
-                        layout: layout,
-                        seatState: { code in
-                            // Transitional until Task 7: generic fill for selection.
-                            if selectedSeat == code {
-                                return .filled(symbol: "scope", tint: FT.Palette.Scenario.sage)
-                            }
-                            if usedSeats.contains(code) { return .previouslyUsed }
-                            return .available
-                        },
-                        hiddenSeat: nil,
-                        namespace: seatNamespace,
-                        onSelect: handleSeatTap
-                    )
+                trainComposition
+                    .padding(.horizontal, FT.Layout.sideMargin)
+                    .padding(.top, 8)
+                    .padding(.bottom, 160)
                     .opacity(appeared ? 1 : 0)
                     .scaleEffect(appeared ? 1 : 0.96)
-                }
-                .padding(.horizontal, FT.Layout.sideMargin)
-                .padding(.top, 8)
-                .padding(.bottom, selectedSeat == nil ? 140 : 280)
             }
+            .scrollDisabled(isScrollLocked)
 
-            bottomOverlay
+            confirmLayer
+        }
+        .overlayPreferenceValue(SeatBoundsKey.self) { anchors in
+            modalOverlay(anchors)
         }
         .navigationBarBackButtonHidden(true)
         .toolbar {
@@ -77,6 +97,7 @@ struct SeatPickerView: View {
                         .font(.system(size: 17, weight: .bold))
                         .foregroundStyle(FT.Palette.white)
                 }
+                .disabled(isDeparting)
                 .accessibilityLabel(Text("common.back"))
             }
         }
@@ -87,17 +108,21 @@ struct SeatPickerView: View {
                     pendingBoardingPass = nil
                     onDepart(confirmedTicket)
                 },
-                onCancel: { pendingBoardingPass = nil }
+                onCancel: { handleBoardingPassCancel() }
             )
         }
         .sheet(isPresented: $showCustomSheet) {
             CustomFocusModeSheet { mode in
                 focusModeStore.add(mode)
-                withAnimation(.spring(response: 0.35, dampingFraction: 0.8)) {
-                    selectedCustomID = mode.id
-                    selectedDefault = nil
-                }
+                selectedCustomID = mode.id   // commits via onChange below
+                selectedDefault = nil
             }
+        }
+        .onChange(of: selectedDefault) { _, new in
+            if new != nil { commitChoice() }
+        }
+        .onChange(of: selectedCustomID) { _, new in
+            if new != nil { commitChoice() }
         }
         .onAppear {
             guard !appeared else { return }
@@ -119,96 +144,145 @@ struct SeatPickerView: View {
         .ignoresSafeArea()
     }
 
-    // MARK: - Header
+    // MARK: - Train
 
-    private var header: some View {
-        Text(NSLocalizedString("seatPicker.title", comment: ""))
-            .font(FT.Typography.sectionTitle)
-            .foregroundStyle(FT.Palette.white)
+    private var trainComposition: some View {
+        VStack(spacing: 0) {
+            SteamLocomotiveView(steamIntensity: isDeparting ? 1.0 : 0.35)
+            TrainCouplingView()
+            WagonView(
+                layout: layout,
+                seatState: seatState,
+                hiddenSeat: chosenSeat,
+                namespace: seatNamespace,
+                onSelect: handleSeatTap
+            )
+        }
     }
 
-    // MARK: - Bottom overlay (confirm card + CTA)
+    private func seatState(_ code: String) -> SeatTile.State {
+        let filledCode: String? = {
+            switch phase {
+            case .filled(let c), .departing(let c): return c
+            default: return nil
+            }
+        }()
+        if code == filledCode, let mode = chosenMode {
+            return .filled(symbol: mode.symbol, tint: mode.tint)
+        }
+        if usedSeats.contains(code) { return .previouslyUsed }
+        return .available
+    }
 
-    private var bottomOverlay: some View {
-        VStack(spacing: 16) {
+    // MARK: - Modal overlay (scrim + morphing card)
+
+    @ViewBuilder
+    private func modalOverlay(_ anchors: [String: Anchor<CGRect>]) -> some View {
+        GeometryReader { proxy in
+            ZStack {
+                if case .choosing(let code) = phase {
+                    FT.Palette.black.opacity(0.55)
+                        .ignoresSafeArea()
+                        .contentShape(Rectangle())
+                        .onTapGesture { cancelChoice() }
+                        .transition(.opacity)
+
+                    let cardWidth = proxy.size.width - FT.Layout.sideMargin * 2
+                    let seatMidY = anchors[code].map { proxy[$0].midY } ?? proxy.size.height / 2
+                    let y = min(max(seatMidY, 200), proxy.size.height - 220)
+
+                    FocusReasonCard(
+                        seatCode: code,
+                        selectedDefault: $selectedDefault,
+                        selectedCustomID: $selectedCustomID,
+                        customModes: focusModeStore.customModes,
+                        onTapAdd: { showCustomSheet = true },
+                        onDeleteCustom: handleDeleteCustom
+                    )
+                    .frame(width: cardWidth)
+                    .matchedGeometryEffect(id: code, in: seatNamespace)
+                    .position(x: proxy.size.width / 2, y: y)
+                }
+            }
+        }
+    }
+
+    // MARK: - Confirm pill
+
+    private var confirmLayer: some View {
+        VStack {
             Spacer()
-
-            if let seat = selectedSeat {
-                SeatConfirmCard(
-                    seatCode: seat,
-                    selectedDefault: $selectedDefault,
-                    selectedCustomID: $selectedCustomID,
-                    customModes: focusModeStore.customModes,
-                    onTapAdd: { showCustomSheet = true },
-                    onDeleteCustom: handleDeleteCustom
+            if case .filled = phase, chosenMode != nil {
+                CTAButton(
+                    title: NSLocalizedString("seatPicker.confirmCta", comment: ""),
+                    style: .primary,
+                    action: handleConfirm
                 )
                 .padding(.horizontal, FT.Layout.sideMargin)
+                .padding(.bottom, 12)
                 .transition(.move(edge: .bottom).combined(with: .opacity))
             }
-
-            CTAButton(
-                title: NSLocalizedString("seatPicker.depart", comment: ""),
-                style: .primary,
-                icon: "arrow.right",
-                action: handleDepart
-            )
-            .padding(.horizontal, FT.Layout.sideMargin)
-            .padding(.bottom, 12)
-            .opacity(canDepart ? 1 : 0.4)
-            .allowsHitTesting(canDepart)
         }
-        .background(
-            LinearGradient(
-                colors: [FT.Palette.black.opacity(0), FT.Palette.black],
-                startPoint: .top,
-                endPoint: .bottom
-            )
-            .ignoresSafeArea()
-            .allowsHitTesting(false)
-        )
-        .opacity(appeared ? 1 : 0)
-        .offset(y: appeared ? 0 : 24)
-        .animation(.spring(response: 0.45, dampingFraction: 0.82), value: selectedSeat)
+        .animation(.spring(response: 0.45, dampingFraction: 0.82), value: phase)
     }
 
     // MARK: - Actions
 
     private func handleSeatTap(_ code: String) {
-        withAnimation(.spring(response: 0.35, dampingFraction: 0.8)) {
-            if selectedSeat == code {
-                selectedSeat = nil
-            } else {
-                selectedSeat = code
-            }
+        guard !isDeparting else { return }
+        // Tapping any seat (including a re-tap on the filled one) clears the
+        // previous pick and opens the modal there — single selection.
+        selectedDefault = nil
+        selectedCustomID = nil
+        withAnimation(morphSpring) {
+            phase = .choosing(code)
+        }
+    }
+
+    private func cancelChoice() {
+        selectedDefault = nil
+        selectedCustomID = nil
+        withAnimation(morphSpring) {
+            phase = .idle
+        }
+    }
+
+    /// A chip was picked while the modal is open: morph the card back into the
+    /// seat, now filled with the mode's icon and tint.
+    private func commitChoice() {
+        guard case .choosing(let code) = phase else { return }
+        UIImpactFeedbackGenerator(style: .light).impactOccurred()
+        withAnimation(morphSpring) {
+            phase = .filled(code)
         }
     }
 
     private func handleDeleteCustom(_ mode: CustomFocusMode) {
-        if selectedCustomID == mode.id {
-            selectedCustomID = nil
-        }
+        if selectedCustomID == mode.id { selectedCustomID = nil }
         withAnimation(.spring(response: 0.35, dampingFraction: 0.8)) {
             focusModeStore.remove(mode)
         }
     }
 
-    private func handleDepart() {
-        guard canDepart, let seat = selectedSeat else { return }
+    private func handleConfirm() {
+        guard case .filled(let seat) = phase, let mode = chosenMode else { return }
         UIImpactFeedbackGenerator(style: .medium).impactOccurred()
-
-        let modeName: String? = {
-            if let mode = selectedDefault { return mode.rawValue }
-            if let id = selectedCustomID,
-               let custom = focusModeStore.customModes.first(where: { $0.id == id }) {
-                return custom.name
-            }
-            return nil
-        }()
 
         var finalTicket = incomingTicket
         finalTicket.seatCode = seat
-        finalTicket.focusMode = modeName
-        pendingBoardingPass = finalTicket
+        finalTicket.focusMode = mode.name
+
+        phase = .departing(seat)
+        pendingBoardingPass = finalTicket   // Task 8 inserts the departure run here
+    }
+
+    private func handleBoardingPassCancel() {
+        pendingBoardingPass = nil
+        if case .departing(let seat) = phase {
+            withAnimation(.spring(response: 0.45, dampingFraction: 0.85)) {
+                phase = .filled(seat)
+            }
+        }
     }
 }
 

@@ -2216,38 +2216,6 @@
         }
       }
     },
-    "seatPicker.confirm.subtitle" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Set the intention for this session."
-          }
-        },
-        "pt-BR" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Defina a intenção desta sessão."
-          }
-        }
-      }
-    },
-    "seatPicker.confirm.title" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Seat: %@ — what do you want to focus on?"
-          }
-        },
-        "pt-BR" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Assento: %@ — O que você quer focar?"
-          }
-        }
-      }
-    },
     "seatPicker.confirmCta" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -2261,22 +2229,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Confirmar"
-          }
-        }
-      }
-    },
-    "seatPicker.depart" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Board"
-          }
-        },
-        "pt-BR" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Embarcar"
           }
         }
       }
