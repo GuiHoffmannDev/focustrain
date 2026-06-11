@@ -28,6 +28,11 @@ struct SeatPickerView: View {
     @State private var showCustomSheet = false
     @State private var appeared = false
     @State private var pendingBoardingPass: Ticket?
+    @State private var departOffset: CGFloat = 0
+    @State private var departProgress: Double = 0
+    @State private var contentFade: Double = 1
+    @State private var contentHeight: CGFloat = 0
+    @State private var viewportHeight: CGFloat = 0
 
     @Namespace private var seatNamespace
 
@@ -79,13 +84,25 @@ struct SeatPickerView: View {
                     .padding(.bottom, 160)
                     .opacity(appeared ? 1 : 0)
                     .scaleEffect(appeared ? 1 : 0.96)
+                    .onGeometryChange(for: CGFloat.self) { $0.size.height } action: {
+                        contentHeight = $0
+                    }
+                    .offset(y: departOffset)
             }
             .scrollDisabled(isScrollLocked)
+            .opacity(contentFade)
+
+            if isDeparting {
+                SpeedLinesOverlay(progress: departProgress)
+            }
 
             confirmLayer
         }
         .overlayPreferenceValue(SeatBoundsKey.self) { anchors in
             modalOverlay(anchors)
+        }
+        .onGeometryChange(for: CGFloat.self) { $0.size.height } action: {
+            viewportHeight = $0
         }
         .navigationBarBackButtonHidden(true)
         .toolbar {
@@ -275,13 +292,47 @@ struct SeatPickerView: View {
         var finalTicket = incomingTicket
         finalTicket.seatCode = seat
         finalTicket.focusMode = mode.name
-
         phase = .departing(seat)
-        pendingBoardingPass = finalTicket   // Task 8 inserts the departure run here
+
+        if reduceMotion {
+            withAnimation(.easeInOut(duration: 0.3)) { contentFade = 0 }
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.32) {
+                pendingBoardingPass = finalTicket
+            }
+            return
+        }
+
+        // The run: heavy start, then full steam — train exits the screen top.
+        let distance = contentHeight + viewportHeight
+        withAnimation(.timingCurve(0.85, 0.0, 0.9, 0.4, duration: 1.4)) {
+            departOffset = -distance
+        }
+        withAnimation(.easeIn(duration: 1.0)) { departProgress = 1 }
+        scheduleDepartureHaptics()
+        DispatchQueue.main.asyncAfter(deadline: .now() + 1.45) {
+            pendingBoardingPass = finalTicket
+        }
+    }
+
+    /// Light impacts at increasing pace — wheels biting as the train speeds up.
+    private func scheduleDepartureHaptics() {
+        let generator = UIImpactFeedbackGenerator(style: .light)
+        generator.prepare()
+        for delay in [0.25, 0.55, 0.8, 0.98, 1.12, 1.24] {
+            DispatchQueue.main.asyncAfter(deadline: .now() + delay) {
+                guard isDeparting else { return }
+                generator.impactOccurred(intensity: 0.6 + 0.4 * delay / 1.3)
+            }
+        }
     }
 
     private func handleBoardingPassCancel() {
         pendingBoardingPass = nil
+        departProgress = 0
+        contentFade = 1
+        var transaction = Transaction()
+        transaction.disablesAnimations = true
+        withTransaction(transaction) { departOffset = 0 }
         if case .departing(let seat) = phase {
             withAnimation(.spring(response: 0.45, dampingFraction: 0.85)) {
                 phase = .filled(seat)
