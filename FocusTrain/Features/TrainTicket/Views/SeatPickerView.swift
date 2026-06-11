@@ -92,7 +92,9 @@ struct SeatPickerView: View {
             .scrollDisabled(isScrollLocked)
             .opacity(contentFade)
 
-            if isDeparting {
+            // Speed lines only in the full-motion run — Reduce Motion gets a
+            // plain crossfade with no on-screen motion.
+            if isDeparting && !reduceMotion {
                 SpeedLinesOverlay(progress: departProgress)
             }
 
@@ -104,6 +106,8 @@ struct SeatPickerView: View {
         .onGeometryChange(for: CGFloat.self) { $0.size.height } action: {
             viewportHeight = $0
         }
+        // Also suppresses the interactive swipe-back gesture — important during
+        // the departing run, where the only exit must be the (disabled) chevron.
         .navigationBarBackButtonHidden(true)
         .toolbar {
             ToolbarItem(placement: .topBarLeading) {
