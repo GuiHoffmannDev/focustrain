@@ -23,7 +23,9 @@ struct SpeedLinesOverlay: View {
                     var path = Path()
                     path.move(to: CGPoint(x: x, y: y))
                     path.addLine(to: CGPoint(x: x, y: y + length))
-                    context.stroke(path, with: .color(FT.Palette.white.opacity(alpha)), lineWidth: 1.5)
+                    // Adaptive so streaks read in both schemes: light on the
+                    // dark train, dark on the light background.
+                    context.stroke(path, with: .color(FT.Palette.textPrimary.opacity(alpha)), lineWidth: 1.5)
                 }
             }
         }

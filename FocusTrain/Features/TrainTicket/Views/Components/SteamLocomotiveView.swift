@@ -122,7 +122,9 @@ private struct SteamPuffsView: View {
                     let radius = CGFloat(6 + progress * 14)
                     let alpha = (1 - progress) * (0.08 + 0.22 * intensity)
                     let rect = CGRect(x: x - radius, y: y - radius, width: radius * 2, height: radius * 2)
-                    context.fill(Ellipse().path(in: rect), with: .color(FT.Palette.white.opacity(alpha)))
+                    // Adaptive so the puffs read in both schemes: white steam on
+                    // the dark cabin, dark smoke on the light background.
+                    context.fill(Ellipse().path(in: rect), with: .color(FT.Palette.textPrimary.opacity(alpha)))
                 }
             }
         }
