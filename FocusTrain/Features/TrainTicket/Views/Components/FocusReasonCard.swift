@@ -1,8 +1,9 @@
 import SwiftUI
 
-/// Floating card shown once the user has picked a seat. Shows the selected
-/// seat code and prompts for an intention (focus mode) via embedded chips.
-struct SeatConfirmCard: View {
+/// The focus-reason modal the tapped seat morphs into: seat code, prompt and
+/// the focus-mode chips. Pure surface — selection state lives in the host
+/// (`SeatPickerView`), which commits as soon as either binding becomes non-nil.
+struct FocusReasonCard: View {
     let seatCode: String
     @Binding var selectedDefault: FocusMode?
     @Binding var selectedCustomID: UUID?
@@ -13,12 +14,12 @@ struct SeatConfirmCard: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 14) {
             VStack(alignment: .leading, spacing: 4) {
-                Text(String(format: NSLocalizedString("seatPicker.confirm.title", comment: ""), seatCode))
-                    .font(FT.Typography.sectionTitle)
-                    .foregroundStyle(FT.Palette.textPrimary)
-                Text(LocalizedStringKey("seatPicker.confirm.subtitle"))
-                    .font(.system(size: 14, weight: .regular))
+                Text(String(format: NSLocalizedString("seatPicker.modal.seat", comment: ""), seatCode))
+                    .font(.system(size: 13, weight: .semibold))
                     .foregroundStyle(FT.Palette.textSecondary)
+                Text(LocalizedStringKey("seatPicker.modal.title"))
+                    .font(.system(size: 19, weight: .bold))
+                    .foregroundStyle(FT.Palette.textPrimary)
             }
 
             FocusModeChips(
@@ -40,5 +41,20 @@ struct SeatConfirmCard: View {
                 .stroke(FT.Palette.textMuted.opacity(0.25), lineWidth: 1)
         )
         .shadow(color: FT.Palette.shadowSoft, radius: 18, y: 10)
+    }
+}
+
+#Preview {
+    ZStack {
+        FT.Palette.black.ignoresSafeArea()
+        FocusReasonCard(
+            seatCode: "01C",
+            selectedDefault: .constant(nil),
+            selectedCustomID: .constant(nil),
+            customModes: [],
+            onTapAdd: {},
+            onDeleteCustom: { _ in }
+        )
+        .padding(.horizontal, 24)
     }
 }

@@ -2216,50 +2216,53 @@
         }
       }
     },
-    "seatPicker.confirm.subtitle" : {
+    "seatPicker.confirmCta" : {
+      "extractionState" : "manual",
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Set the intention for this session."
+            "value" : "Confirm"
           }
         },
         "pt-BR" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Defina a intenção desta sessão."
+            "value" : "Confirmar"
           }
         }
       }
     },
-    "seatPicker.confirm.title" : {
+    "seatPicker.modal.seat" : {
+      "extractionState" : "manual",
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Seat: %@ — what do you want to focus on?"
+            "value" : "Seat: %@"
           }
         },
         "pt-BR" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Assento: %@ — O que você quer focar?"
+            "value" : "Assento: %@"
           }
         }
       }
     },
-    "seatPicker.depart" : {
+    "seatPicker.modal.title" : {
+      "extractionState" : "manual",
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Board"
+            "value" : "What do you want to focus?"
           }
         },
         "pt-BR" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Embarcar"
+            "value" : "O que você quer focar?"
           }
         }
       }

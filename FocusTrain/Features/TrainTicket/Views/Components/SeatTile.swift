@@ -1,14 +1,17 @@
 import SwiftUI
 import UIKit
 
-/// Single seat in the wagon grid. Three visual states share the same footprint
-/// so the layout never reflows when selection changes.
+/// Single seat in the carriage grid. All states share the same footprint so
+/// the layout never reflows when selection changes. Tiles are clean rounded
+/// squares — the column letters live in the carriage header row instead.
 struct SeatTile: View {
-    enum State {
+    enum State: Equatable {
         case available
-        case previouslyUsed   // user has occupied this seat in a past journey
-        case selected
+        case previouslyUsed                       // occupied in a past journey
+        case filled(symbol: String, tint: Color)  // carries the chosen focus mode
     }
+
+    static let size: CGFloat = 48
 
     let code: String
     let state: State
@@ -17,29 +20,33 @@ struct SeatTile: View {
     var body: some View {
         Button(action: handleTap) {
             ZStack {
-                RoundedRectangle(cornerRadius: 10, style: .continuous)
+                RoundedRectangle(cornerRadius: 12, style: .continuous)
                     .fill(.clear)
-                    .ftGlassRounded(cornerRadius: 10, interactive: true, tint: glassTint)
+                    .ftGlassRounded(cornerRadius: 12, interactive: true, tint: glassTint)
                     .overlay(
-                        RoundedRectangle(cornerRadius: 10, style: .continuous)
-                            .stroke(strokeColor, lineWidth: strokeWidth)
+                        RoundedRectangle(cornerRadius: 12, style: .continuous)
+                            .stroke(strokeColor, lineWidth: 1)
                     )
 
-                Text(label)
-                    .font(.system(size: 11, weight: .bold, design: .monospaced))
-                    .foregroundStyle(textColor)
+                if case .filled(let symbol, _) = state {
+                    Image(systemName: symbol)
+                        .font(.system(size: 18, weight: .semibold))
+                        .foregroundStyle(FT.Palette.ink)
+                        .transition(.scale.combined(with: .opacity))
+                }
             }
-            .frame(width: 38, height: 38)
-            .scaleEffect(state == .selected ? 1.06 : 1.0)
-            .shadow(
-                color: state == .selected ? FT.Palette.brandRail.opacity(0.35) : .clear,
-                radius: 8,
-                y: 2
-            )
+            .frame(width: Self.size, height: Self.size)
+            .scaleEffect(isFilled ? 1.06 : 1.0)
+            .shadow(color: shadowColor, radius: 8, y: 2)
         }
         .buttonStyle(.plain)
         .accessibilityLabel(Text(code))
-        .accessibilityAddTraits(state == .selected ? .isSelected : [])
+        .accessibilityAddTraits(isFilled ? .isSelected : [])
+    }
+
+    private var isFilled: Bool {
+        if case .filled = state { return true }
+        return false
     }
 
     private func handleTap() {
@@ -49,9 +56,9 @@ struct SeatTile: View {
 
     private var glassTint: Color? {
         switch state {
-        case .available:      return nil
-        case .previouslyUsed: return FT.Palette.brandRail.opacity(0.18)
-        case .selected:       return FT.Palette.brandRail
+        case .available:           return nil
+        case .previouslyUsed:      return FT.Palette.brandRail.opacity(0.18)
+        case .filled(_, let tint): return tint
         }
     }
 
@@ -59,27 +66,12 @@ struct SeatTile: View {
         switch state {
         case .available:      return FT.Palette.textMuted.opacity(0.3)
         case .previouslyUsed: return FT.Palette.brandRail.opacity(0.45)
-        case .selected:       return .clear
+        case .filled:         return .clear
         }
     }
 
-    private var strokeWidth: CGFloat {
-        state == .previouslyUsed ? 1 : 1
-    }
-
-    private var textColor: Color {
-        switch state {
-        case .available:      return FT.Palette.textMuted
-        case .previouslyUsed: return FT.Palette.textPrimary.opacity(0.75)
-        // Sits on the brandRail-filled tile (white in dark, #333 in light), so it
-        // needs the inverse glyph just like an active session control.
-        case .selected:       return FT.Palette.controlActiveGlyph
-        }
-    }
-
-    private var label: String {
-        // Show only the column letter — the row number is rendered alongside
-        // the row in `WagonView`, so the tile stays uncluttered.
-        String(code.suffix(1))
+    private var shadowColor: Color {
+        if case .filled(_, let tint) = state { return tint.opacity(0.35) }
+        return .clear
     }
 }
