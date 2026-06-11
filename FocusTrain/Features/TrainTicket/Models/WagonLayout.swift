@@ -1,14 +1,14 @@
 import Foundation
 
-/// Static description of the wagon used in `SeatPickerView`.
-/// Two pairs of columns (A C | D F) split by a central aisle, 7 rows.
+/// Static description of the carriage used in `SeatPickerView`.
+/// Two pairs of columns (A C | D F) split by a central aisle, 20 rows.
 struct WagonLayout {
     let rows: ClosedRange<Int>
     let leftColumns: [String]
     let rightColumns: [String]
 
     static let standard = WagonLayout(
-        rows: 1...7,
+        rows: 1...20,
         leftColumns: ["A", "C"],
         rightColumns: ["D", "F"]
     )
