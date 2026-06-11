@@ -20,6 +20,7 @@ struct SeatPickerView: View {
     @State private var showCustomSheet: Bool = false
     @State private var appeared: Bool = false
     @State private var pendingBoardingPass: Ticket?
+    @Namespace private var seatNamespace
 
     private let layout = WagonLayout.standard
 
@@ -44,8 +45,16 @@ struct SeatPickerView: View {
 
                     WagonView(
                         layout: layout,
-                        selectedSeat: selectedSeat,
-                        usedSeats: usedSeats,
+                        seatState: { code in
+                            // Transitional until Task 7: generic fill for selection.
+                            if selectedSeat == code {
+                                return .filled(symbol: "scope", tint: FT.Palette.Scenario.sage)
+                            }
+                            if usedSeats.contains(code) { return .previouslyUsed }
+                            return .available
+                        },
+                        hiddenSeat: nil,
+                        namespace: seatNamespace,
                         onSelect: handleSeatTap
                     )
                     .opacity(appeared ? 1 : 0)
