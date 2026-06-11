@@ -29,7 +29,7 @@ struct TicketStubView: View {
                 .foregroundStyle(Color(white: 0.5))
             Text(value)
                 .font(FT.Typography.ticketField)
-                .foregroundStyle(FT.Palette.brandRail)
+                .foregroundStyle(FT.Palette.white)
         }
     }
 
@@ -39,7 +39,7 @@ struct TicketStubView: View {
             HStack(alignment: .center, spacing: 0) {
                 ForEach(Array(bars.enumerated()), id: \.offset) { _, bar in
                     Rectangle()
-                        .fill(bar.fill ? FT.Palette.brandRail : Color.clear)
+                        .fill(bar.fill ? FT.Palette.white : Color.clear)
                         .frame(width: bar.width)
                 }
             }

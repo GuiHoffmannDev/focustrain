@@ -14,11 +14,16 @@ import MapKit
 struct DestinationMapView: UIViewRepresentable {
     let model: DurationPickerModel
 
+    /// Drives `updateUIView` on the scheme flip so custom chrome re-resolves.
+    @Environment(\.colorScheme) private var colorScheme
+
     func makeCoordinator() -> Coordinator { Coordinator(model: model) }
 
     func makeUIView(context: Context) -> MKMapView {
         let map = MKMapView()
         map.delegate = context.coordinator
+        context.coordinator.chrome = model.mapStyle.chromeColors(for: colorScheme)
+        context.coordinator.appliedDarkChrome = model.mapStyle.usesDarkChrome(for: colorScheme)
         map.preferredConfiguration = model.mapStyle.mapConfiguration(showLabels: model.mapShowLabels)
         context.coordinator.appliedStyle = model.mapStyle
         context.coordinator.appliedShowLabels = model.mapShowLabels
@@ -30,7 +35,6 @@ struct DestinationMapView: UIViewRepresentable {
         map.showsScale = false
         map.showsBuildings = false
         map.pointOfInterestFilter = .excludingAll
-        map.overrideUserInterfaceStyle = .dark
 
         let origin = OriginAnnotation()
         origin.coordinate = model.origin.coordinate
@@ -67,6 +71,18 @@ struct DestinationMapView: UIViewRepresentable {
     func updateUIView(_ map: MKMapView, context: Context) {
         let coord = context.coordinator
 
+        // Scheme/style flip → re-resolve chrome. The ring re-renders via the
+        // `applyRing` rebuild below and the pins via the restyle loop; the origin
+        // dot is a baked UIImage, so re-set it here.
+        let darkChrome = model.mapStyle.usesDarkChrome(for: colorScheme)
+        if coord.appliedDarkChrome != darkChrome {
+            coord.appliedDarkChrome = darkChrome
+            coord.chrome = darkChrome ? .dark : .light
+            if let origin = coord.origin, let originView = map.view(for: origin) {
+                originView.image = OriginMarker.dot(color: coord.chrome.originDot)
+            }
+        }
+
         if coord.appliedStyle != model.mapStyle || coord.appliedShowLabels != model.mapShowLabels {
             map.preferredConfiguration = model.mapStyle.mapConfiguration(showLabels: model.mapShowLabels)
             coord.appliedStyle = model.mapStyle
@@ -88,7 +104,7 @@ struct DestinationMapView: UIViewRepresentable {
 
         for ann in coord.pins {
             guard let view = map.view(for: ann) as? StationAnnotationView else { continue }
-            view.apply(state: coord.state(for: ann.index))
+            view.apply(state: coord.state(for: ann.index), chrome: coord.chrome)
             coord.applyA11y(to: view, index: ann.index)
         }
 
@@ -114,6 +130,8 @@ struct DestinationMapView: UIViewRepresentable {
         var ring: MKCircle?
         var appliedStyle: MapStyle?
         var appliedShowLabels: Bool?
+        var chrome: MapChromeColors = .dark
+        var appliedDarkChrome: Bool?
 
         init(model: DurationPickerModel) { self.model = model }
 
@@ -201,9 +219,9 @@ struct DestinationMapView: UIViewRepresentable {
         func mapView(_ map: MKMapView, rendererFor overlay: MKOverlay) -> MKOverlayRenderer {
             guard let circle = overlay as? MKCircle else { return MKOverlayRenderer(overlay: overlay) }
             let r = MKCircleRenderer(circle: circle)
-            r.strokeColor = UIColor.white.withAlphaComponent(0.5)
+            r.strokeColor = chrome.ringStroke
             r.lineWidth = 1.5
-            r.fillColor = UIColor.white.withAlphaComponent(0.04)
+            r.fillColor = chrome.ringFill
             return r
         }
 
@@ -213,7 +231,7 @@ struct DestinationMapView: UIViewRepresentable {
                 let v = map.dequeueReusableAnnotationView(withIdentifier: id)
                     ?? MKAnnotationView(annotation: annotation, reuseIdentifier: id)
                 v.annotation = annotation
-                v.image = OriginMarker.dot()
+                v.image = OriginMarker.dot(color: chrome.originDot)
                 v.centerOffset = .zero
                 v.isAccessibilityElement = false
                 return v
@@ -223,7 +241,7 @@ struct DestinationMapView: UIViewRepresentable {
                 let v = (map.dequeueReusableAnnotationView(withIdentifier: id) as? StationAnnotationView)
                     ?? StationAnnotationView(annotation: annotation, reuseIdentifier: id)
                 v.annotation = annotation
-                v.apply(state: state(for: station.index))
+                v.apply(state: state(for: station.index), chrome: chrome)
                 applyA11y(to: v, index: station.index)
                 return v
             }
@@ -374,27 +392,36 @@ final class StationAnnotationView: MKAnnotationView {
                                  y: 0, width: labelW, height: h)
     }
 
-    func apply(state: PinState) {
-        guard state != currentState else { return }
+    func apply(state: PinState, chrome: MapChromeColors) {
+        let stateChanged = state != currentState
         currentState = state
         switch state {
         case .ghost:
+            // Border re-painted every call so a pure scheme flip re-colours it;
+            // the disc body stays dark (a physical marker), glyph stays white.
+            disc.layer.borderColor = chrome.pinGhostBorder.cgColor
+            guard stateChanged else { break }
             pill.isHidden = true
             disc.isHidden = false
             alpha = 0.3
             transform = CGAffineTransform(scaleX: 0.6, y: 0.6)
-            disc.layer.borderColor = UIColor.white.withAlphaComponent(0.4).cgColor
             disc.layer.shadowOpacity = 0
             stopPulse()
         case .solid:
-            pill.isHidden = true
-            disc.isHidden = false
-            alpha = 1.0
-            transform = .identity
-            disc.layer.borderColor = UIColor.white.cgColor
-            disc.layer.shadowOpacity = 0
-            startPulse(color: .white, capsule: false)
+            disc.layer.borderColor = chrome.pinBorder.cgColor
+            if stateChanged {
+                pill.isHidden = true
+                disc.isHidden = false
+                alpha = 1.0
+                transform = .identity
+                disc.layer.shadowOpacity = 0
+                startPulse(color: chrome.pinBorder, capsule: false)
+            } else {
+                pulse.borderColor = chrome.pinBorder.cgColor
+            }
         case .selected:
+            // The selected pill + its pulse are brass — identical in both schemes.
+            guard stateChanged else { break }
             disc.isHidden = true
             pill.isHidden = false
             alpha = 1.0
@@ -456,12 +483,12 @@ final class StationAnnotationView: MKAnnotationView {
 // MARK: - Origin marker
 
 enum OriginMarker {
-    static func dot() -> UIImage {
+    static func dot(color: UIColor) -> UIImage {
         let size = CGSize(width: 16, height: 16)
         return UIGraphicsImageRenderer(size: size).image { _ in
             let rect = CGRect(origin: .zero, size: size).insetBy(dx: 2, dy: 2)
             let path = UIBezierPath(ovalIn: rect)
-            UIColor.white.setFill()
+            color.setFill()
             path.fill()
         }
     }

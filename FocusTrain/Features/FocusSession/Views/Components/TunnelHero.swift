@@ -22,19 +22,19 @@ struct TunnelHero: View {
             VStack(spacing: 16) {
                 ZStack {
                     Circle()
-                        .fill(FT.Palette.brandRail.opacity(0.12))
+                        .fill(FT.Palette.white.opacity(0.12))
                         .frame(width: 132, height: 132)
                         .scaleEffect(breathe ? 1.12 : 0.92)
                         .blur(radius: 6)
 
                     Circle()
-                        .stroke(FT.Palette.brandRail.opacity(0.4), lineWidth: 1.5)
+                        .stroke(FT.Palette.white.opacity(0.4), lineWidth: 1.5)
                         .frame(width: 96, height: 96)
 
                     Image(systemName: "moon.zzz.fill")
                         .font(.system(size: 40, weight: .semibold))
-                        .foregroundStyle(FT.Palette.brandRail)
-                        .shadow(color: FT.Palette.brandRail.opacity(0.6), radius: 16)
+                        .foregroundStyle(FT.Palette.white)
+                        .shadow(color: FT.Palette.white.opacity(0.6), radius: 16)
                 }
 
                 Text(NSLocalizedString("session.tunnel.on", comment: ""))

@@ -38,7 +38,7 @@ struct PulsingPin: View {
                         .foregroundStyle(FT.Palette.brandBrass)
                     Text("\(streak)")
                         .font(.system(size: 15, weight: .heavy))
-                        .foregroundStyle(FT.Palette.white)
+                        .foregroundStyle(FT.Palette.textPrimary)
                 }
                 .padding(.horizontal, 10)
                 .padding(.vertical, 6)

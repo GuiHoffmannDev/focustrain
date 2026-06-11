@@ -28,13 +28,4 @@ extension MapStyle {
             return config
         }
     }
-
-    /// Whether this style needs a dark dimming overlay to sit behind the
-    /// white route line + chrome (keeps monochrome readable).
-    var needsDimmingOverlay: Bool {
-        switch self {
-        case .monochrome, .terra, .satellite: return true
-        case .standard: return false
-        }
-    }
 }

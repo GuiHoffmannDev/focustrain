@@ -69,7 +69,7 @@ struct TrendsSheet: View {
 
     var body: some View {
         ZStack {
-            FT.Palette.black.opacity(0.35).ignoresSafeArea()
+            FT.Palette.scrim.opacity(0.35).ignoresSafeArea()
             RadialGradient(
                 colors: [FT.Palette.brandRail.opacity(0.06), .clear],
                 center: .top, startRadius: 0, endRadius: 420
@@ -114,7 +114,7 @@ struct TrendsSheet: View {
             Spacer()
             Text(NSLocalizedString("trends.title", comment: ""))
                 .font(FT.Typography.sectionTitle)
-                .foregroundStyle(FT.Palette.white)
+                .foregroundStyle(FT.Palette.textPrimary)
             Spacer()
             FTGlassIconButton(
                 systemName: "xmark",
@@ -169,7 +169,7 @@ struct TrendsSheet: View {
                         .foregroundStyle(FT.Palette.brandRail)
                     Text(NSLocalizedString("trends.focusTime.detailTitle", comment: ""))
                         .font(.system(size: 15, weight: .bold))
-                        .foregroundStyle(FT.Palette.white)
+                        .foregroundStyle(FT.Palette.textPrimary)
                     Spacer()
                 }
                 WeeklyBarsChart()
@@ -184,7 +184,7 @@ struct TrendsSheet: View {
             )
             .overlay(
                 RoundedRectangle(cornerRadius: 20, style: .continuous)
-                    .stroke(Color.white.opacity(0.08), lineWidth: 1)
+                    .stroke(FT.Palette.strokeHairline, lineWidth: 1)
             )
             .blur(radius: 6)
 
@@ -195,20 +195,20 @@ struct TrendsSheet: View {
                     .foregroundStyle(FT.Palette.brandBrass)
                 Text(NSLocalizedString("trends.paywall.title", comment: ""))
                     .font(.system(size: 16, weight: .bold))
-                    .foregroundStyle(FT.Palette.white)
+                    .foregroundStyle(FT.Palette.textPrimary)
                     .multilineTextAlignment(.center)
                 Button(action: {
                     UIImpactFeedbackGenerator(style: .light).impactOccurred()
                 }) {
                     Text(NSLocalizedString("trends.paywall.cta", comment: ""))
                         .font(.system(size: 14, weight: .bold))
-                        .foregroundStyle(FT.Palette.black)
+                        .foregroundStyle(FT.Palette.chipSelectedFg)
                         .padding(.horizontal, 18)
                         .padding(.vertical, 10)
                         .background(
                             Capsule(style: .continuous)
                                 .fill(.clear)
-                                .ftGlassCapsule(interactive: true, tint: FT.Palette.white.opacity(0.75))
+                                .ftGlassCapsule(interactive: true, tint: FT.Palette.chipSelectedTint)
                         )
                 }
                 .buttonStyle(.plain)
@@ -241,7 +241,7 @@ private struct StatCard: View {
             HStack(alignment: .lastTextBaseline, spacing: 4) {
                 Text(value)
                     .font(.system(size: 36, weight: .heavy))
-                    .foregroundStyle(FT.Palette.white)
+                    .foregroundStyle(FT.Palette.textPrimary)
                     .lineLimit(1)
                     .minimumScaleFactor(0.6)
                 if let unitKey {
@@ -268,7 +268,7 @@ private struct StatCard: View {
         )
         .overlay(
             RoundedRectangle(cornerRadius: 20, style: .continuous)
-                .stroke(Color.white.opacity(0.08), lineWidth: 1)
+                .stroke(FT.Palette.strokeHairline, lineWidth: 1)
         )
     }
 }
@@ -293,7 +293,7 @@ private struct RangePicker: View {
 
                     RoundedRectangle(cornerRadius: 11, style: .continuous)
                         .fill(.clear)
-                        .ftGlassRounded(cornerRadius: 11, tint: FT.Palette.white.opacity(0.75))
+                        .ftGlassRounded(cornerRadius: 11, tint: FT.Palette.chipSelectedTint)
                         .frame(width: itemWidth - 6, height: geo.size.height - 6)
                         .offset(x: index * itemWidth + 3, y: 0)
                         .animation(.spring(response: 0.35, dampingFraction: 0.85), value: selection)
@@ -306,7 +306,7 @@ private struct RangePicker: View {
                             }) {
                                 Text(NSLocalizedString(option.labelKey, comment: ""))
                                     .font(.system(size: 13, weight: .semibold))
-                                    .foregroundStyle(selection == option ? FT.Palette.black : FT.Palette.textSecondary)
+                                    .foregroundStyle(selection == option ? FT.Palette.chipSelectedFg : FT.Palette.textSecondary)
                                     .frame(maxWidth: .infinity, maxHeight: .infinity)
                             }
                             .buttonStyle(.plain)

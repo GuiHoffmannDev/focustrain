@@ -74,7 +74,7 @@ struct SeatPickerView: View {
 
     var body: some View {
         ZStack {
-            FT.Palette.black.ignoresSafeArea()
+            FT.Palette.bgPrimary.ignoresSafeArea()
             backdropGlow
 
             ScrollView(showsIndicators: false) {
@@ -116,7 +116,7 @@ struct SeatPickerView: View {
                 Button(action: onBack) {
                     Image(systemName: "chevron.left")
                         .font(.system(size: 17, weight: .bold))
-                        .foregroundStyle(FT.Palette.white)
+                        .foregroundStyle(FT.Palette.textPrimary)
                 }
                 .disabled(isDeparting)
                 .accessibilityLabel(Text("common.back"))

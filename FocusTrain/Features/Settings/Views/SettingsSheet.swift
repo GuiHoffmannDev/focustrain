@@ -125,7 +125,7 @@ private struct RewardsBanner: View {
             )
             .overlay(
                 RoundedRectangle(cornerRadius: 18, style: .continuous)
-                    .stroke(FT.Palette.white.opacity(0.06), lineWidth: 1)
+                    .stroke(FT.Palette.strokeHairline, lineWidth: 1)
             )
         }
         .buttonStyle(.plain)
@@ -142,35 +142,35 @@ private struct GeneralSection: View {
     var body: some View {
         SettingsSection(titleKey: "settings.section.general") {
             HomeCityRow(currentCity: homeCityStore.manualCity?.name)
-            Divider().background(FT.Palette.white.opacity(0.06))
+            Divider().background(FT.Palette.strokeHairline)
             ToggleRow(icon: "speaker.slash.fill",
                       titleKey: "settings.row.quietMode",
                       isOn: $quietCarriageEnabled)
-            Divider().background(FT.Palette.white.opacity(0.06))
+            Divider().background(FT.Palette.strokeHairline)
             NavRow(icon: "map.fill", titleKey: "settings.row.mapStyle") {
                 MapStyleDetailView()
             }
-            Divider().background(FT.Palette.white.opacity(0.06))
+            Divider().background(FT.Palette.strokeHairline)
             NavRow(icon: "leaf.fill", titleKey: "settings.row.scenarios") {
                 ScenariosDetailView()
             }
-            Divider().background(FT.Palette.white.opacity(0.06))
+            Divider().background(FT.Palette.strokeHairline)
             ToggleRow(icon: "bell.fill",
                       titleKey: "settings.row.notifications",
                       isOn: $notificationsEnabled)
-            Divider().background(FT.Palette.white.opacity(0.06))
+            Divider().background(FT.Palette.strokeHairline)
             NavRow(icon: "waveform", titleKey: "settings.row.sound") {
                 SoundHapticsDetailView()
             }
-            Divider().background(FT.Palette.white.opacity(0.06))
+            Divider().background(FT.Palette.strokeHairline)
             NavRow(icon: "tram.fill", titleKey: "settings.row.inRide") {
                 InRideDetailView()
             }
-            Divider().background(FT.Palette.white.opacity(0.06))
+            Divider().background(FT.Palette.strokeHairline)
             NavRow(icon: "ruler.fill", titleKey: "settings.row.units") {
                 UnitsDetailView()
             }
-            Divider().background(FT.Palette.white.opacity(0.06))
+            Divider().background(FT.Palette.strokeHairline)
             NavRow(icon: "globe", titleKey: "settings.row.language") {
                 LanguageDetailView()
             }
@@ -199,11 +199,11 @@ private struct GuideSection: View {
             .padding(.horizontal, 14)
             .padding(.vertical, 14)
 
-            Divider().background(FT.Palette.white.opacity(0.06))
+            Divider().background(FT.Palette.strokeHairline)
             NavRow(icon: "info.circle.fill", titleKey: "settings.row.about") {
                 AboutDetailView()
             }
-            Divider().background(FT.Palette.white.opacity(0.06))
+            Divider().background(FT.Palette.strokeHairline)
             NavRow(icon: "doc.text.fill", titleKey: "settings.row.terms") {
                 TermsDetailView()
             }
@@ -233,7 +233,7 @@ private struct SettingsSection<Content: View>: View {
                 )
                 .overlay(
                     RoundedRectangle(cornerRadius: 18, style: .continuous)
-                        .stroke(FT.Palette.white.opacity(0.06), lineWidth: 1)
+                        .stroke(FT.Palette.strokeHairline, lineWidth: 1)
                 )
         }
     }
@@ -416,7 +416,7 @@ private struct ScenariosDetailView: View {
                                 .stroke(
                                     rawScenario == scenario.rawValue
                                         ? FT.Palette.brandRail.opacity(0.6)
-                                        : FT.Palette.white.opacity(0.06),
+                                        : FT.Palette.strokeHairline,
                                     lineWidth: rawScenario == scenario.rawValue ? 2 : 1
                                 )
                         )
@@ -438,7 +438,7 @@ private struct SoundHapticsDetailView: View {
                 ToggleRow(icon: "speaker.wave.2.fill",
                           titleKey: "settings.sound.departureToggle",
                           isOn: $soundOnDeparture)
-                Divider().background(FT.Palette.white.opacity(0.06))
+                Divider().background(FT.Palette.strokeHairline)
                 ToggleRow(icon: "iphone.radiowaves.left.and.right",
                           titleKey: "settings.sound.hapticsToggle",
                           isOn: $hapticsDuringRide)
@@ -450,7 +450,7 @@ private struct SoundHapticsDetailView: View {
             )
             .overlay(
                 RoundedRectangle(cornerRadius: 18, style: .continuous)
-                    .stroke(FT.Palette.white.opacity(0.06), lineWidth: 1)
+                    .stroke(FT.Palette.strokeHairline, lineWidth: 1)
             )
         }
     }
@@ -466,7 +466,7 @@ private struct InRideDetailView: View {
                 ToggleRow(icon: "ruler",
                           titleKey: "settings.inRide.distance",
                           isOn: $showDistance)
-                Divider().background(FT.Palette.white.opacity(0.06))
+                Divider().background(FT.Palette.strokeHairline)
                 ToggleRow(icon: "gauge.with.dots.needle.67percent",
                           titleKey: "settings.inRide.speed",
                           isOn: $showSpeed)
@@ -478,7 +478,7 @@ private struct InRideDetailView: View {
             )
             .overlay(
                 RoundedRectangle(cornerRadius: 18, style: .continuous)
-                    .stroke(FT.Palette.white.opacity(0.06), lineWidth: 1)
+                    .stroke(FT.Palette.strokeHairline, lineWidth: 1)
             )
         }
     }
@@ -544,14 +544,14 @@ private struct PickerCard: View {
                 }
                 .buttonStyle(.plain)
                 if idx < options.count - 1 {
-                    Divider().background(FT.Palette.white.opacity(0.06))
+                    Divider().background(FT.Palette.strokeHairline)
                 }
             }
         }
         .ftGlass(.rounded(18))
         .overlay(
             RoundedRectangle(cornerRadius: 18, style: .continuous)
-                .strokeBorder(FT.Palette.white.opacity(0.06), lineWidth: 1)
+                .strokeBorder(FT.Palette.strokeHairline, lineWidth: 1)
         )
     }
 }
@@ -597,7 +597,7 @@ private struct AboutDetailView: View {
             )
             .overlay(
                 RoundedRectangle(cornerRadius: 18, style: .continuous)
-                    .stroke(FT.Palette.white.opacity(0.06), lineWidth: 1)
+                    .stroke(FT.Palette.strokeHairline, lineWidth: 1)
             )
         }
     }
@@ -619,7 +619,7 @@ private struct TermsDetailView: View {
                 )
                 .overlay(
                     RoundedRectangle(cornerRadius: 18, style: .continuous)
-                        .stroke(FT.Palette.white.opacity(0.06), lineWidth: 1)
+                        .stroke(FT.Palette.strokeHairline, lineWidth: 1)
                 )
         }
     }

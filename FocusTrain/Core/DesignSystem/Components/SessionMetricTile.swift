@@ -6,6 +6,9 @@ struct SessionMetricTile: View {
     let label: String
     let value: String
     var alignment: HorizontalAlignment = .leading
+    /// `false` over a light map (mono/standard in light), where the value needs
+    /// dark text instead of white.
+    var onDarkBackdrop: Bool = true
 
     var body: some View {
         VStack(alignment: alignment, spacing: 4) {
@@ -17,8 +20,8 @@ struct SessionMetricTile: View {
 
             Text(value)
                 .font(.system(size: 28, weight: .bold, design: .default))
-                .foregroundStyle(FT.Palette.white)
-                .shadow(color: .black.opacity(0.4), radius: 3, x: 0, y: 1)
+                .foregroundStyle(onDarkBackdrop ? FT.Palette.white : FT.Palette.textPrimary)
+                .shadow(color: FT.Palette.shadowSoft, radius: 3, x: 0, y: 1)
         }
         .accessibilityElement(children: .combine)
         .accessibilityLabel("\(label), \(value)")

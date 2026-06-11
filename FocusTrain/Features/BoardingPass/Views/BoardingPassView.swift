@@ -26,7 +26,7 @@ struct BoardingPassView: View {
 
     var body: some View {
         ZStack {
-            FT.Palette.black.ignoresSafeArea()
+            FT.Palette.bgPrimary.ignoresSafeArea()
             backdropGlow
 
             VStack(spacing: 0) {
@@ -119,14 +119,14 @@ struct BoardingPassView: View {
         VStack(spacing: 6) {
             Text("Seu embarque está pronto")
                 .font(.system(size: 17, weight: .semibold))
-                .foregroundStyle(FT.Palette.white)
+                .foregroundStyle(FT.Palette.textPrimary)
             HStack(spacing: 8) {
                 Image(systemName: "hand.draw.fill")
                     .font(.system(size: 13, weight: .semibold))
                     .foregroundStyle(FT.Palette.brandRail.opacity(0.7))
                 Text("Rasgue a perfuração para começar")
                     .font(.system(size: 13, weight: .medium))
-                    .foregroundStyle(FT.Palette.white.opacity(0.65))
+                    .foregroundStyle(FT.Palette.textPrimary.opacity(0.65))
                 TearArrowHint()
             }
         }
@@ -153,7 +153,7 @@ struct BoardingPassView: View {
                     systemName: "xmark",
                     size: 36,
                     iconSize: 14,
-                    foreground: FT.Palette.white.opacity(0.7),
+                    foreground: FT.Palette.textPrimary.opacity(0.7),
                     accessibilityLabel: "Cancelar"
                 ) {
                     onCancel()

@@ -23,7 +23,7 @@ struct ArrivalView: View {
     var body: some View {
         ZStack {
             // Backdrop.
-            FT.Palette.black.ignoresSafeArea()
+            FT.Palette.bgPrimary.ignoresSafeArea()
             RadialGradient(
                 colors: [FT.Palette.brandBrass.opacity(0.18), .clear],
                 center: .center, startRadius: 40, endRadius: 420
