@@ -2248,6 +2248,23 @@
         }
       }
     },
+    "seatPicker.confirmCta" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Confirm"
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Confirmar"
+          }
+        }
+      }
+    },
     "seatPicker.depart" : {
       "localizations" : {
         "en" : {
@@ -2260,6 +2277,40 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Embarcar"
+          }
+        }
+      }
+    },
+    "seatPicker.modal.seat" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Seat: %@"
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Assento: %@"
+          }
+        }
+      }
+    },
+    "seatPicker.modal.title" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "What do you want to focus?"
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "O que você quer focar?"
           }
         }
       }
