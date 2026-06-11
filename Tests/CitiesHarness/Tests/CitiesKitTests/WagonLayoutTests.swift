@@ -15,14 +15,15 @@ import Testing
     @Test func legacySevenRowCodesRemainValid() {
         // Journeys recorded before the 20-row carriage used rows 01–07; their
         // codes must still exist in the new layout so SeatHistory tinting works.
+        // Expected codes are hardcoded (not re-derived from the layout) so a
+        // regression in the row range or columns actually fails this test.
         let layout = WagonLayout.standard
         let all = Set(layout.rows.flatMap { row in
             layout.allColumns.map { WagonLayout.seatCode(row: row, column: $0) }
         })
-        for row in 1...7 {
-            for column in ["A", "C", "D", "F"] {
-                #expect(all.contains(WagonLayout.seatCode(row: row, column: column)))
-            }
+        let legacyCodes = ["01A", "01C", "01D", "01F", "07A", "07C", "07D", "07F"]
+        for code in legacyCodes {
+            #expect(all.contains(code))
         }
     }
 }
