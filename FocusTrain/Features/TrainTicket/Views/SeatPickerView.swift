@@ -118,6 +118,10 @@ struct SeatPickerView: View {
                 selectedDefault = nil
             }
         }
+        // Picking a chip commits the choice. The `new != nil` guard is load-
+        // bearing: the two selections are mutually exclusive, so setting one
+        // always clears the other — that paired clear fires the sibling
+        // onChange with `nil`, which must be ignored (not treated as a commit).
         .onChange(of: selectedDefault) { _, new in
             if new != nil { commitChoice() }
         }
