@@ -95,7 +95,8 @@ struct WagonView: View {
     private func seatTile(row: Int, column: String) -> some View {
         let code = WagonLayout.seatCode(row: row, column: column)
         let state: SeatTile.State = {
-            if selectedSeat == code { return .selected }
+            // Transitional until Task 5: a generic fill stands in for selection.
+            if selectedSeat == code { return .filled(symbol: "scope", tint: FT.Palette.Scenario.sage) }
             if usedSeats.contains(code) { return .previouslyUsed }
             return .available
         }()
