@@ -26,10 +26,10 @@ struct TicketStubView: View {
             Text(label)
                 .font(.system(size: 9, weight: .bold, design: .monospaced))
                 .tracking(0.8)
-                .foregroundStyle(Color(white: 0.5))
+                .foregroundStyle(FT.Palette.Ticket.inkFaint)
             Text(value)
                 .font(FT.Typography.ticketField)
-                .foregroundStyle(FT.Palette.white)
+                .foregroundStyle(FT.Palette.Ticket.ink)
         }
     }
 
@@ -39,7 +39,7 @@ struct TicketStubView: View {
             HStack(alignment: .center, spacing: 0) {
                 ForEach(Array(bars.enumerated()), id: \.offset) { _, bar in
                     Rectangle()
-                        .fill(bar.fill ? FT.Palette.white : Color.clear)
+                        .fill(bar.fill ? FT.Palette.Ticket.ink : Color.clear)
                         .frame(width: bar.width)
                 }
             }
