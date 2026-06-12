@@ -69,7 +69,7 @@ struct TearableTicketView: View {
                 // Perforation dashed guide (only while intact-ish)
                 PerforationPath()
                     .stroke(style: StrokeStyle(lineWidth: 1, dash: [4, 4]))
-                    .foregroundStyle(Color(white: 0.45).opacity(1 - Double(tearProgress)))
+                    .foregroundStyle(FT.Palette.Ticket.perforation.opacity(1 - Double(tearProgress)))
                     .frame(height: 1)
                     .position(x: size.width / 2, y: perforationY)
                     .allowsHitTesting(false)
@@ -94,10 +94,10 @@ struct TearableTicketView: View {
         ZStack {
             // Card fill
             BoardingPassShape(notchY: perforationY)
-                .fill(Color(white: 0.10))
+                .fill(FT.Palette.Ticket.card)
 
             // Map watermark, clipped to the card silhouette
-            DotMatrixMapView()
+            DotMatrixMapView(tint: FT.Palette.Ticket.mapTint)
                 .opacity(0.55)
                 .clipShape(BoardingPassShape(notchY: perforationY))
 
@@ -111,7 +111,7 @@ struct TearableTicketView: View {
 
             // Subtle outline
             BoardingPassShape(notchY: perforationY)
-                .stroke(Color(white: 0.18), lineWidth: 1)
+                .stroke(FT.Palette.Ticket.outline, lineWidth: 1)
         }
         .frame(width: size.width, height: size.height)
         .shadow(color: Color.black.opacity(0.45), radius: 18, y: 10)
@@ -125,7 +125,7 @@ struct TearableTicketView: View {
                 .font(.system(size: 10, weight: .heavy, design: .monospaced))
                 .tracking(1.2)
         }
-        .foregroundStyle(Color(white: 0.6))
+        .foregroundStyle(FT.Palette.Ticket.hint)
         .position(x: width / 2, y: y + 18)
         .allowsHitTesting(false)
     }

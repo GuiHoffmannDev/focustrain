@@ -44,6 +44,16 @@ extension Color {
                 : UIColor(hex: light, alpha: lightAlpha)
         })
     }
+
+    /// Scheme-adaptive grey built from two `white:` luminances. Keeps the light
+    /// branch byte-identical to a plain `Color(white:)` (no hex round-trip), so
+    /// existing greys can flip to dark mode without shifting in light mode.
+    init(whiteLight: Double, whiteDark: Double) {
+        self.init(uiColor: UIColor { traits in
+            UIColor(white: traits.userInterfaceStyle == .dark ? whiteDark : whiteLight,
+                    alpha: 1)
+        })
+    }
 }
 
 enum FT {
@@ -105,6 +115,24 @@ enum FT {
                                               dark:  0xFFFFFF, darkAlpha:  0.75)
         /// Foreground of a selected filter chip (was exact `.black`).
         static let chipSelectedFg     = Color(light: 0xFFFFFF, dark: 0x000000)
+
+        /// Boarding-pass ticket (the tear-to-board pass). The card inverts by
+        /// scheme: a near-black card with light ink in light mode (the locked
+        /// baseline), a near-white card with dark ink in dark mode — so the
+        /// ticket always reads as a high-contrast object against the page.
+        /// Each token's light branch is the previous `Color(white:)` value;
+        /// the dark branch is its luminance inverse (1 − value).
+        enum Ticket {
+            static let card        = Color(whiteLight: 0.10, whiteDark: 0.90)
+            static let outline     = Color(whiteLight: 0.18, whiteDark: 0.82)
+            static let ink         = Color(whiteLight: 1.00, whiteDark: 0.00)  // primary text/barcode
+            static let inkStrong   = Color(whiteLight: 0.70, whiteDark: 0.30)  // duration label
+            static let inkMuted    = Color(whiteLight: 0.55, whiteDark: 0.45)  // headers, city names
+            static let inkFaint    = Color(whiteLight: 0.50, whiteDark: 0.50)  // field labels (mid-grey)
+            static let hint        = Color(whiteLight: 0.60, whiteDark: 0.40)  // tear hint
+            static let perforation = Color(whiteLight: 0.45, whiteDark: 0.55)
+            static let mapTint     = Color(whiteLight: 0.42, whiteDark: 0.58)  // dot-matrix watermark
+        }
 
         enum Scenario {
             static let sage     = Color(hex: 0xC5D5C0)

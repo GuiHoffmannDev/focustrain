@@ -25,12 +25,12 @@ struct TicketBodyView: View {
                     .font(.system(size: 11, weight: .heavy, design: .monospaced))
                     .tracking(1.4)
             }
-            .foregroundStyle(Color(white: 0.55))
+            .foregroundStyle(FT.Palette.Ticket.inkMuted)
             Spacer()
             Text(display.code)
                 .font(.system(size: 11, weight: .bold, design: .monospaced))
                 .tracking(0.8)
-                .foregroundStyle(Color(white: 0.55))
+                .foregroundStyle(FT.Palette.Ticket.inkMuted)
         }
     }
 
@@ -39,31 +39,31 @@ struct TicketBodyView: View {
             VStack(alignment: .leading, spacing: 4) {
                 Text(display.fromCode)
                     .font(.system(size: 42, weight: .black, design: .default))
-                    .foregroundStyle(FT.Palette.white)
+                    .foregroundStyle(FT.Palette.Ticket.ink)
                 Text(display.fromCity.uppercased())
                     .font(.system(size: 10, weight: .semibold, design: .monospaced))
                     .tracking(0.6)
-                    .foregroundStyle(Color(white: 0.55))
+                    .foregroundStyle(FT.Palette.Ticket.inkMuted)
                     .lineLimit(1)
             }
             VStack(spacing: 4) {
                 Image(systemName: "airplane")
                     .font(.system(size: 14, weight: .bold))
-                    .foregroundStyle(FT.Palette.white.opacity(0.85))
+                    .foregroundStyle(FT.Palette.Ticket.ink.opacity(0.85))
                 Text(display.durationLabel)
                     .font(.system(size: 11, weight: .bold, design: .monospaced))
                     .tracking(0.4)
-                    .foregroundStyle(Color(white: 0.7))
+                    .foregroundStyle(FT.Palette.Ticket.inkStrong)
             }
             .frame(maxWidth: .infinity)
             VStack(alignment: .trailing, spacing: 4) {
                 Text(display.toCode)
                     .font(.system(size: 42, weight: .black, design: .default))
-                    .foregroundStyle(FT.Palette.white)
+                    .foregroundStyle(FT.Palette.Ticket.ink)
                 Text(display.toCity.uppercased())
                     .font(.system(size: 10, weight: .semibold, design: .monospaced))
                     .tracking(0.6)
-                    .foregroundStyle(Color(white: 0.55))
+                    .foregroundStyle(FT.Palette.Ticket.inkMuted)
                     .lineLimit(1)
             }
         }
@@ -86,10 +86,10 @@ struct TicketBodyView: View {
             Text(label)
                 .font(.system(size: 9, weight: .bold, design: .monospaced))
                 .tracking(0.8)
-                .foregroundStyle(Color(white: 0.5))
+                .foregroundStyle(FT.Palette.Ticket.inkFaint)
             Text(value)
                 .font(FT.Typography.ticketField)
-                .foregroundStyle(FT.Palette.white)
+                .foregroundStyle(FT.Palette.Ticket.ink)
         }
     }
 }
